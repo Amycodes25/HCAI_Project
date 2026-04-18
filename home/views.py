@@ -12,15 +12,17 @@ def index(request):
     template = loader.get_template("home/index.html")
     
     
+    # TODO: replace placeholders with real names + matriculation numbers.
     students = [
-        {"name": "Jane Doe", "matriculation": "123456"},
-        {"name": "John Smith", "matriculation": "654321"},
-        {"name": "Alex Johnson", "matriculation": "789012"},
+        {"name": "Member 1 (TBD)", "matriculation": "TBD"},
+        {"name": "Member 2 (TBD)", "matriculation": "TBD"},
+        {"name": "Member 3 (TBD)", "matriculation": "TBD"},
+        {"name": "Member 4 (TBD)", "matriculation": "TBD"},
     ]
-    
+
     projects = [
-        {"name": "Home", "url_name": "home:index"},
-        {"name": "Home 2", "url_name": "home:index"},
+        {"name": "Project 1 — Supervised Learning Interface",
+         "url_name": "project1:index"},
     ]
     
     context = { 

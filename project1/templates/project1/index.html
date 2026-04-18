@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="project1-index">
+    <h1>{{ title }}</h1>
+    <p>{{ subtitle }}</p>
+
+    <ul>
+        <li><em>Upload CSV</em> &mdash; coming soon</li>
+        <li><em>Visualise data</em> &mdash; coming soon</li>
+        <li><em>Train &amp; compare models</em> &mdash; coming soon</li>
+    </ul>
+
+    <p><a href="{% url 'home:index' %}">&larr; back to home</a></p>
+</section>
+{% endblock %}
