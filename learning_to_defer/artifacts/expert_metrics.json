@@ -1,0 +1,104 @@
+{
+  "expert_name": "Business news specialist",
+  "description": "An imperfect Business specialist with class-dependent competence.",
+  "overall_accuracy": 0.842632,
+  "test_samples": 7600,
+  "per_class": [
+    {
+      "label": 0,
+      "class_name": "World",
+      "designed_accuracy": 0.86,
+      "measured_accuracy": 0.858947,
+      "test_samples": 1900
+    },
+    {
+      "label": 1,
+      "class_name": "Sports",
+      "designed_accuracy": 0.7,
+      "measured_accuracy": 0.71,
+      "test_samples": 1900
+    },
+    {
+      "label": 2,
+      "class_name": "Business",
+      "designed_accuracy": 0.97,
+      "measured_accuracy": 0.975263,
+      "test_samples": 1900
+    },
+    {
+      "label": 3,
+      "class_name": "Sci/Tech",
+      "designed_accuracy": 0.84,
+      "measured_accuracy": 0.826316,
+      "test_samples": 1900
+    }
+  ],
+  "classification_report": {
+    "World": {
+      "precision": 0.8508863399374348,
+      "recall": 0.8589473684210527,
+      "f1-score": 0.85489785227868,
+      "support": 1900.0
+    },
+    "Sports": {
+      "precision": 0.8603316326530612,
+      "recall": 0.71,
+      "f1-score": 0.7779700115340253,
+      "support": 1900.0
+    },
+    "Business": {
+      "precision": 0.8173797970886635,
+      "recall": 0.9752631578947368,
+      "f1-score": 0.8893688504919607,
+      "support": 1900.0
+    },
+    "Sci/Tech": {
+      "precision": 0.8500270709258256,
+      "recall": 0.8263157894736842,
+      "f1-score": 0.8380037363223912,
+      "support": 1900.0
+    },
+    "accuracy": 0.8426315789473684,
+    "macro avg": {
+      "precision": 0.8446562101512463,
+      "recall": 0.8426315789473685,
+      "f1-score": 0.8400601126567643,
+      "support": 7600.0
+    },
+    "weighted avg": {
+      "precision": 0.8446562101512463,
+      "recall": 0.8426315789473684,
+      "f1-score": 0.8400601126567643,
+      "support": 7600.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      1632,
+      93,
+      94,
+      81
+    ],
+    [
+      161,
+      1349,
+      204,
+      186
+    ],
+    [
+      16,
+      21,
+      1853,
+      10
+    ],
+    [
+      109,
+      105,
+      116,
+      1570
+    ]
+  ],
+  "seed": 42,
+  "strength": "Business",
+  "weakness": "Sports"
+}

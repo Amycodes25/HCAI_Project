@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'learning_to_defer/style.css' %}">
+<link rel="stylesheet" href="{% static 'learning_to_defer/project_theme.css' %}">
+{% endblock %}
+
+{% block content %}
+<main class="project-shell">
+    {% include "learning_to_defer/_task_nav.html" with active_task="task1" %}
+    <header class="page-header">
+        <p class="eyebrow">Task 1 · Baseline classifier</p>
+        <h1>How well can the AI classify news on its own?</h1>
+        <p>TF-IDF represents important words and phrases. Logistic Regression converts those features into probabilities for four news categories.</p>
+    </header>
+
+    {% if metrics %}
+    <section class="metric-grid">
+        <article class="metric-card"><span>Test accuracy</span><strong>{{ metrics.test_accuracy_percent|floatformat:2 }}%</strong><small>Official AG News test split</small></article>
+        <article class="metric-card"><span>Training articles</span><strong>{{ metrics.train_samples }}</strong><small>All official training labels</small></article>
+        <article class="metric-card"><span>Test articles</span><strong>{{ metrics.test_samples }}</strong><small>Used only for evaluation</small></article>
+        <article class="metric-card"><span>Model</span><strong class="model-name">{{ metrics.model }}</strong><small>Fast and probability-aware</small></article>
+    </section>
+    {% else %}
+    <section class="status-card">
+        <span class="status-dot"></span>
+        <div><h2>Baseline not trained yet</h2><p>Run <code>python -m learning_to_defer.services.train_baseline</code>. This page will then load the measured test results.</p></div>
+    </section>
+    {% endif %}
+
+    <section class="explanation-grid">
+        <article><h2>Why TF-IDF?</h2><p>It gives more importance to informative words while reducing the influence of words that appear in almost every article.</p></article>
+        <article><h2>Why Logistic Regression?</h2><p>It is a strong, efficient text baseline and produces class probabilities that can later support deferral decisions.</p></article>
+        <article><h2>Evaluation rule</h2><p>The official test split is never used for training. This keeps the reported accuracy a fair measure of generalisation.</p></article>
+    </section>
+</main>
+{% endblock %}
