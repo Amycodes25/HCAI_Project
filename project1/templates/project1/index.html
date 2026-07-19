@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ML Studio</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background:
+                radial-gradient(circle at top left, #172554 0%, transparent 35%),
+                radial-gradient(circle at top right, #312e81 0%, transparent 35%),
+                #07111f;
+            color: #e5e7eb;
+            min-height: 100vh;
+        }
+
+        .page-container {
+            width: min(1280px, 94%);
+            margin: 0 auto;
+            padding: 35px 0 70px;
+        }
+
+        .hero {
+            background: linear-gradient(
+                135deg,
+                rgba(37, 99, 235, 0.18),
+                rgba(124, 58, 237, 0.18)
+            );
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 22px;
+            padding: 36px;
+            margin-bottom: 28px;
+            backdrop-filter: blur(14px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+        }
+
+        .hero-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 7px 13px;
+            border-radius: 999px;
+            background: rgba(59, 130, 246, 0.18);
+            color: #93c5fd;
+            border: 1px solid rgba(96, 165, 250, 0.25);
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            margin-bottom: 15px;
+        }
+
+        .hero h1 {
+            font-size: clamp(34px, 5vw, 58px);
+            line-height: 1.05;
+            margin-bottom: 14px;
+            color: white;
+        }
+
+        .hero h1 span {
+            background: linear-gradient(90deg, #60a5fa, #a78bfa, #22d3ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            max-width: 760px;
+            color: #cbd5e1;
+            font-size: 17px;
+            line-height: 1.7;
+        }
+
+        .status-chip {
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+            color: #86efac;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .pipeline {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-top: 28px;
+        }
+
+        .pipeline-step {
+            padding: 15px;
+            border-radius: 14px;
+            background: rgba(15, 23, 42, 0.72);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+        }
+
+        .pipeline-step span {
+            display: block;
+            color: #60a5fa;
+            font-size: 12px;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .pipeline-step strong {
+            color: white;
+            font-size: 14px;
+        }
+
+        .card {
+            background: rgba(15, 23, 42, 0.78);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            border-radius: 20px;
+            padding: 28px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 14px 42px rgba(0, 0, 0, 0.22);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .card-title-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            font-size: 23px;
+            background: linear-gradient(
+                135deg,
+                rgba(59, 130, 246, 0.25),
+                rgba(139, 92, 246, 0.25)
+            );
+            border: 1px solid rgba(96, 165, 250, 0.22);
+        }
+
+        .card h2 {
+            color: white;
+            font-size: 23px;
+        }
+
+        .card-subtitle {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            color: #cbd5e1;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        select,
+        input[type="file"] {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 11px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            background: #0f172a;
+            color: #f8fafc;
+            outline: none;
+            transition: 0.2s ease;
+        }
+
+        select:focus,
+        input[type="file"]:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
+        }
+
+        .button {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            padding: 13px 20px;
+            border: none;
+            border-radius: 11px;
+            background: linear-gradient(90deg, #2563eb, #7c3aed);
+            color: white;
+            cursor: pointer;
+            font-weight: 800;
+            font-size: 14px;
+            transition: 0.2s ease;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(79, 70, 229, 0.3);
+        }
+
+        .button.secondary {
+            background: linear-gradient(90deg, #0891b2, #2563eb);
+        }
+
+        .button.success {
+            background: linear-gradient(90deg, #059669, #0d9488);
+        }
+
+        .button.danger {
+            background: linear-gradient(90deg, #dc2626, #b91c1c);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 22px;
+        }
+
+        .stat-card {
+            padding: 18px;
+            border-radius: 15px;
+            background: rgba(30, 41, 59, 0.75);
+            border: 1px solid rgba(148, 163, 184, 0.13);
+        }
+
+        .stat-label {
+            color: #94a3b8;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            color: white;
+            font-size: 25px;
+            font-weight: 800;
+        }
+
+        .stat-value.small {
+            font-size: 17px;
+            word-break: break-word;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 13px;
+            border: 1px solid rgba(148, 163, 184, 0.16);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 700px;
+        }
+
+        th {
+            background: #1e293b;
+            color: #e2e8f0;
+            text-align: left;
+            padding: 14px;
+            font-size: 13px;
+        }
+
+        td {
+            padding: 13px 14px;
+            border-top: 1px solid rgba(148, 163, 184, 0.12);
+            color: #cbd5e1;
+            background: rgba(15, 23, 42, 0.72);
+        }
+
+        tr:hover td {
+            background: rgba(30, 41, 59, 0.88);
+        }
+
+        .plot-wrapper {
+            margin-top: 24px;
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+        }
+
+        .plot-wrapper img {
+            display: block;
+            width: 100%;
+            max-height: 580px;
+            object-fit: contain;
+        }
+
+        .result-highlight {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        .result-box {
+            padding: 22px;
+            border-radius: 16px;
+            background: linear-gradient(
+                135deg,
+                rgba(37, 99, 235, 0.15),
+                rgba(124, 58, 237, 0.15)
+            );
+            border: 1px solid rgba(96, 165, 250, 0.18);
+        }
+
+        .result-box .label {
+            color: #94a3b8;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .result-box .value {
+            color: white;
+            font-weight: 800;
+            font-size: 22px;
+        }
+
+        .accuracy-value {
+            color: #4ade80 !important;
+        }
+
+        .progress-track {
+            height: 9px;
+            background: #1e293b;
+            border-radius: 99px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            border-radius: 99px;
+            background: linear-gradient(90deg, #22c55e, #06b6d4);
+        }
+
+        .best-row td {
+            background: rgba(34, 197, 94, 0.11);
+            color: #bbf7d0;
+            font-weight: 700;
+        }
+
+        .error-message {
+            padding: 16px 18px;
+            margin-bottom: 22px;
+            border-radius: 13px;
+            background: rgba(220, 38, 38, 0.14);
+            border: 1px solid rgba(248, 113, 113, 0.25);
+            color: #fecaca;
+        }
+
+        .helper-text {
+            color: #94a3b8;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .footer {
+            text-align: center;
+            color: #64748b;
+            margin-top: 36px;
+            font-size: 13px;
+        }
+
+        @media (max-width: 900px) {
+            .pipeline,
+            .stats-grid,
+            .result-highlight {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .pipeline,
+            .stats-grid,
+            .result-highlight {
+                grid-template-columns: 1fr;
+            }
+
+            .hero,
+            .card {
+                padding: 22px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="page-container">
+
+    <section class="hero">
+        <div class="hero-top">
+            <div>
+                <div class="badge">HUMAN-CENTRIC AUTOMATED ML</div>
+
+                <h1>
+                    Machine Learning
+                    <span>Studio</span>
+                </h1>
+
+                <p>
+                    Upload a dataset, explore relationships between features,
+                    train supervised-learning models and automatically compare
+                    multiple hyperparameter configurations.
+                </p>
+            </div>
+
+            <div class="status-chip">
+                ● ML pipeline ready
+            </div>
+        </div>
+
+        <div class="pipeline">
+            <div class="pipeline-step">
+                <span>STEP 01</span>
+                <strong>Upload dataset</strong>
+            </div>
+
+            <div class="pipeline-step">
+                <span>STEP 02</span>
+                <strong>Explore features</strong>
+            </div>
+
+            <div class="pipeline-step">
+                <span>STEP 03</span>
+                <strong>Train models</strong>
+            </div>
+
+            <div class="pipeline-step">
+                <span>STEP 04</span>
+                <strong>Compare results</strong>
+            </div>
+        </div>
+    </section>
+
+    {% if error %}
+        <div class="error-message">
+            <strong>Pipeline error:</strong> {{ error }}
+        </div>
+    {% endif %}
+
+    <section class="card">
+        <div class="card-header">
+            <div class="card-title-wrapper">
+                <div class="icon-box">⬆</div>
+
+                <div>
+                    <h2>Upload Dataset</h2>
+                    <p class="card-subtitle">
+                        Import a structured CSV dataset for supervised learning.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <input type="hidden" name="action" value="upload">
+
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label for="csv_file">CSV file</label>
+
+                    <input
+                        type="file"
+                        id="csv_file"
+                        name="csv_file"
+                        accept=".csv"
+                        required
+                    >
+
+                    <p class="helper-text">
+                        The first row should contain column names. The last
+                        column is treated as the suggested target variable.
+                    </p>
+                </div>
+
+                <div class="form-group full">
+                    <button class="button" type="submit">
+                        Upload and analyze dataset
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        {% if data_preview %}
+            <form method="POST" style="margin-top: 14px;">
+                {% csrf_token %}
+
+                <input type="hidden" name="action" value="reset">
+
+                <button class="button danger" type="submit">
+                    Clear current dataset
+                </button>
+            </form>
+        {% endif %}
+    </section>
+
+    {% if data_preview %}
+
+        <section class="card">
+            <div class="card-header">
+                <div class="card-title-wrapper">
+                    <div class="icon-box">▦</div>
+
+                    <div>
+                        <h2>Dataset Overview</h2>
+                        <p class="card-subtitle">
+                            Inspect the structure before training.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Observations</div>
+                    <div class="stat-value">{{ row_count }}</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Columns</div>
+                    <div class="stat-value">{{ column_count }}</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Numeric features</div>
+                    <div class="stat-value">
+                        {{ numeric_columns|length }}
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Suggested target</div>
+                    <div class="stat-value small">
+                        {{ default_target }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                {{ data_preview|safe }}
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="card-header">
+                <div class="card-title-wrapper">
+                    <div class="icon-box">◌</div>
+
+                    <div>
+                        <h2>Feature Explorer</h2>
+                        <p class="card-subtitle">
+                            Visualize the relationship between two numerical features.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <input type="hidden" name="action" value="plot">
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="x_feature">X-axis feature</label>
+
+                        <select id="x_feature" name="x_feature" required>
+                            {% for column in numeric_columns %}
+                                <option
+                                    value="{{ column }}"
+                                    {% if column == selected_x %}selected{% endif %}
+                                >
+                                    {{ column }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="y_feature">Y-axis feature</label>
+
+                        <select id="y_feature" name="y_feature" required>
+                            {% for column in numeric_columns %}
+                                <option
+                                    value="{{ column }}"
+                                    {% if column == selected_y %}selected{% endif %}
+                                >
+                                    {{ column }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="plot_target">Colour by target</label>
+
+                        <select id="plot_target" name="plot_target" required>
+                            {% for column in columns %}
+                                <option
+                                    value="{{ column }}"
+                                    {% if column == selected_plot_target %}
+                                        selected
+                                    {% elif not selected_plot_target and column == default_target %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ column }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group full">
+                        <button class="button secondary" type="submit">
+                            Generate scatter plot
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            {% if scatter_plot %}
+                <div class="plot-wrapper">
+                    <img
+                        src="data:image/png;base64,{{ scatter_plot }}"
+                        alt="Scatter plot"
+                    >
+                </div>
+            {% endif %}
+        </section>
+
+        <section class="card">
+            <div class="card-header">
+                <div class="card-title-wrapper">
+                    <div class="icon-box">⚙</div>
+
+                    <div>
+                        <h2>Model Configuration</h2>
+                        <p class="card-subtitle">
+                            Choose the prediction target, algorithm and test split.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <input type="hidden" name="action" value="train">
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="target">Target variable</label>
+
+                        <select id="target" name="target" required>
+                            {% for column in columns %}
+                                <option
+                                    value="{{ column }}"
+                                    {% if column == selected_target %}
+                                        selected
+                                    {% elif not selected_target and column == default_target %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ column }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="model_name">Learning algorithm</label>
+
+                        <select id="model_name" name="model_name" required>
+                            <option
+                                value="logistic"
+                                {% if selected_model_value == "logistic" %}
+                                    selected
+                                {% endif %}
+                            >
+                                Logistic Regression
+                            </option>
+
+                            <option
+                                value="tree"
+                                {% if selected_model_value == "tree" %}
+                                    selected
+                                {% endif %}
+                            >
+                                Decision Tree
+                            </option>
+
+                            <option
+                                value="knn"
+                                {% if selected_model_value == "knn" %}
+                                    selected
+                                {% endif %}
+                            >
+                                K-Nearest Neighbours
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="test_size">Testing data</label>
+
+                        <select id="test_size" name="test_size">
+                            <option
+                                value="0.2"
+                                {% if selected_test_size == "0.2" %}
+                                    selected
+                                {% endif %}
+                            >
+                                20% test / 80% train
+                            </option>
+
+                            <option
+                                value="0.3"
+                                {% if selected_test_size == "0.3" %}
+                                    selected
+                                {% endif %}
+                            >
+                                30% test / 70% train
+                            </option>
+
+                            <option
+                                value="0.4"
+                                {% if selected_test_size == "0.4" %}
+                                    selected
+                                {% endif %}
+                            >
+                                40% test / 60% train
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group full">
+                        <button class="button success" type="submit">
+                            Train and tune model
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+    {% endif %}
+
+    {% if hyperparameter_results %}
+        <section class="card">
+            <div class="card-header">
+                <div class="card-title-wrapper">
+                    <div class="icon-box">✓</div>
+
+                    <div>
+                        <h2>Model Evaluation</h2>
+                        <p class="card-subtitle">
+                            Hyperparameter tuning and test-set performance.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-highlight">
+                <div class="result-box">
+                    <div class="label">Selected model</div>
+                    <div class="value">{{ selected_model }}</div>
+                </div>
+
+                <div class="result-box">
+                    <div class="label">Best {{ parameter_name }}</div>
+                    <div class="value">{{ best_parameter }}</div>
+                </div>
+
+                <div class="result-box">
+                    <div class="label">Best test accuracy</div>
+                    <div class="value accuracy-value">
+                        {{ best_accuracy }}%
+                    </div>
+
+                    <div class="progress-track">
+                        <div
+                            class="progress-bar"
+                            style="width: {{ best_accuracy }}%;"
+                        ></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Prediction target</div>
+                    <div class="stat-value small">
+                        {{ selected_target }}
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Training rows</div>
+                    <div class="stat-value">{{ training_rows }}</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Testing rows</div>
+                    <div class="stat-value">{{ testing_rows }}</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Input features</div>
+                    <div class="stat-value">
+                        {{ used_features|length }}
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom: 14px; color: white;">
+                Hyperparameter Comparison
+            </h3>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>{{ parameter_name }}</th>
+                            <th>Test accuracy</th>
+                            <th>Performance</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for result in hyperparameter_results %}
+                            <tr
+                                {% if result.parameter == best_parameter %}
+                                    class="best-row"
+                                {% endif %}
+                            >
+                                <td>{{ result.parameter }}</td>
+                                <td>{{ result.accuracy }}%</td>
+                                <td>
+                                    <div class="progress-track">
+                                        <div
+                                            class="progress-bar"
+                                            style="width: {{ result.accuracy }}%;"
+                                        ></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="helper-text" style="margin-top: 18px;">
+                Used features:
+                {{ used_features|join:", " }}
+            </p>
+
+            {% if ignored_features %}
+                <p class="helper-text" style="margin-top: 8px;">
+                    Automatically ignored columns:
+                    {{ ignored_features|join:", " }}
+                </p>
+            {% endif %}
+        </section>
+    {% endif %}
+
+    <div class="footer">
+        HCAI Project 1 · Supervised Learning Interface
+    </div>
+
+</div>
+
+</body>
+</html>
