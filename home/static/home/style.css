@@ -1,0 +1,49 @@
+.student-id {
+    font-family: monospace;
+    color: #555;
+}
+
+.project-card {
+    max-width: 680px;
+    margin: 1rem auto;
+    padding: 1.25rem;
+    border: 1px solid #d8dee9;
+    border-radius: 14px;
+    background: white;
+    text-align: left;
+}
+
+.project-link {
+    display: inline-block;
+    padding: 0.7rem 1rem;
+    border-radius: 8px;
+    background: #2557a7;
+    color: white;
+    text-decoration: none;
+}
+
+.student-list {
+    list-style: none;
+    padding: 0;
+    max-width: 500px;
+    margin: 0 auto;
+    background: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.student-item {
+    padding: 10px 20px;
+    border-bottom: 1px solid #ddd;
+    font-size: 16px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.student-item:last-child {
+    border-bottom: none;
+}
+
+.centered-text {
+    text-align: center;
+}

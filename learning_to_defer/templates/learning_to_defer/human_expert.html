@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'learning_to_defer/style.css' %}"
+>
+<link rel="stylesheet" href="{% static 'learning_to_defer/project_theme.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<main class="project-shell">
+
+    {% include "learning_to_defer/_task_nav.html" with active_task="task5" %}
+
+    <header class="page-header">
+        <p class="eyebrow">
+            Task 5 · Human Expert
+        </p>
+
+        <h1>
+            Take the expert’s seat
+        </h1>
+
+        <p>
+            Label articles requested by the active-learning
+            system. The AI prediction and hidden ground truth
+            remain unavailable until you submit your answer.
+        </p>
+    </header>
+
+    {% if not pool_available %}
+
+        <section class="status-card">
+            <span class="status-dot"></span>
+
+            <div>
+                <h2>
+                    Human-expert pool not prepared
+                </h2>
+
+                <p>
+                    Run
+                    <code>
+                        python -m
+                        learning_to_defer.services.prepare_human_expert_pool
+                    </code>
+                    first.
+                </p>
+            </div>
+        </section>
+
+    {% else %}
+
+        <section class="human-stats">
+
+            <article>
+                <span>Completed</span>
+
+                <strong>
+                    {{ answered_count }}
+                </strong>
+            </article>
+
+            <article>
+                <span>Correct answers</span>
+
+                <strong>
+                    {{ correct_count }}
+                </strong>
+            </article>
+
+            <article>
+                <span>Your accuracy</span>
+
+                <strong>
+                    {{ accuracy|floatformat:2 }}%
+                </strong>
+            </article>
+
+        </section>
+
+        <div class="progress-track">
+            <div  class="progress-value"
+                style="width: {{ progress_percent }}%;"></div>
+        </div>
+
+        <p class="selection-note">
+            {{ selection_method }}
+        </p>
+
+        {% if feedback %}
+
+            <section
+                class="feedback-card
+                {% if feedback.is_correct %}
+                    feedback-correct
+                {% else %}
+                    feedback-wrong
+                {% endif %}"
+            >
+
+                <div>
+                    <span class="feedback-label">
+                        Previous answer
+                    </span>
+
+                    {% if feedback.is_correct %}
+                        <h2>Correct answer</h2>
+                    {% else %}
+                        <h2>Different from the ground truth</h2>
+                    {% endif %}
+
+                    <p>
+                        Your label:
+                        <strong>
+                            {{ feedback.human_category }}
+                        </strong>
+
+                        · Ground truth:
+                        <strong>
+                            {{ feedback.true_category }}
+                        </strong>
+                    </p>
+                </div>
+
+                <div class="feedback-details">
+
+                    <div>
+                        <span>AI prediction</span>
+
+                        <strong>
+                            {{ feedback.ai_category }}
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>AI confidence</span>
+
+                        <strong>
+                            {{ feedback.ai_confidence|floatformat:2 }}%
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Estimated expert competence</span>
+
+                        <strong>
+                            {{ feedback.expert_competence|floatformat:2 }}%
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>System decision</span>
+
+                        <strong>
+                            {% if feedback.would_defer %}
+                                Defer to expert
+                            {% else %}
+                                Use AI
+                            {% endif %}
+                        </strong>
+                    </div>
+
+                </div>
+
+            </section>
+
+        {% endif %}
+
+        {% if completed %}
+
+            <section class="completion-card">
+
+                <span class="completion-icon">✓</span>
+
+                <h2>
+                    Labelling session completed
+                </h2>
+
+                <p>
+                    You labelled all {{ answered_count }}
+                    actively selected articles with an
+                    accuracy of
+                    <strong>
+                        {{ accuracy|floatformat:2 }}%
+                    </strong>.
+                </p>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <button
+                        class="primary-button"
+                        type="submit"
+                        name="action"
+                        value="reset"
+                    >
+                        Start a new session
+                    </button>
+                </form>
+
+            </section>
+
+        {% else %}
+
+            <section class="labelling-card">
+
+                <div class="article-meta">
+                    <span>
+                        Requested article
+                    </span>
+
+                    <strong>
+                        {{ current_article.number }}
+                        of
+                        {{ current_article.total }}
+                    </strong>
+                </div>
+
+                <article class="news-article">
+                    {{ current_article.text }}
+                </article>
+
+                <form method="post" class="label-form">
+                    {% csrf_token %}
+
+                    <fieldset>
+                        <legend>
+                            Choose the most suitable category
+                        </legend>
+
+                        {{ form.label }}
+                    </fieldset>
+
+                    {% if form.label.errors %}
+                        <p class="form-error">
+                            Please select one category.
+                        </p>
+                    {% endif %}
+
+                    <button
+                        class="primary-button"
+                        type="submit"
+                    >
+                        Submit label
+                    </button>
+                </form>
+
+            </section>
+
+            <form
+                method="post"
+                class="reset-form"
+            >
+                {% csrf_token %}
+
+                <button
+                    type="submit"
+                    name="action"
+                    value="reset"
+                    class="secondary-button"
+                >
+                    Reset session
+                </button>
+            </form>
+
+        {% endif %}
+
+    {% endif %}
+
+</main>
+
+{% endblock %}
