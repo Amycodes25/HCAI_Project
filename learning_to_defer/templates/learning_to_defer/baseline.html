@@ -3,12 +3,18 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'learning_to_defer/style.css' %}">
-<link rel="stylesheet" href="{% static 'learning_to_defer/project_theme.css' %}">
 {% endblock %}
 
 {% block content %}
 <main class="project-shell">
-    {% include "learning_to_defer/_task_nav.html" with active_task="task1" %}
+    <nav class="project-nav">
+        <a href="{% url 'learning_to_defer:overview' %}">Overview</a>
+        <a class="active" href="{% url 'learning_to_defer:baseline' %}">Task 1</a>
+        <a href="{% url 'learning_to_defer:simulated_expert' %}">Task 2</a>
+        <a href="{% url 'learning_to_defer:learning_to_defer' %}">Task 3</a>
+        <a href="{% url 'learning_to_defer:active_learning' %}">Task 4</a>
+        <a href="{% url 'learning_to_defer:human_expert' %}">Task 5</a>
+    </nav>
     <header class="page-header">
         <p class="eyebrow">Task 1 · Baseline classifier</p>
         <h1>How well can the AI classify news on its own?</h1>
