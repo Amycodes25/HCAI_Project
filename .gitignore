@@ -172,3 +172,17 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+# Project-specific
+media/*
+!media/.gitkeep
+
+# Django collected static files
+assets/
+
+# Local IDE/editor files
+.vscode/
+.idea/
+
+# Operating system files
+.DS_Store
+Thumbs.db
