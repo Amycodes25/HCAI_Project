@@ -113,6 +113,21 @@ class Upload(Project1Base):
         )
         self.assertNotIn("Id", response.context["columns"])
 
+    def test_loaded_filename_is_remembered_and_shown(self):
+        """A file input renders empty again, so the page must say what is loaded."""
+        response = self.upload(name="iris.csv")
+        self.assertEqual(response.context["data_filename"], "iris.csv")
+        self.assertContains(response, "iris.csv")
+
+        # and it survives a later request that does not re-upload
+        response = self.client.get(self.url)
+        self.assertEqual(response.context["data_filename"], "iris.csv")
+
+    def test_reset_forgets_the_filename_too(self):
+        self.upload(name="iris.csv")
+        response = self.client.post(self.url, {"action": "reset"})
+        self.assertIsNone(response.context.get("data_filename"))
+
     def test_reset_clears_the_dataset(self):
         self.upload()
         response = self.client.post(self.url, {"action": "reset"})

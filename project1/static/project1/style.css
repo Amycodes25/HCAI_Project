@@ -319,3 +319,28 @@ so the
     .control-list > div { grid-template-columns: 180px 52px 1fr; gap: .8rem; }
     .control-list dd:last-child { grid-column: auto; }
 }
+
+/* --- Loaded dataset --------------------------------------------------------
+   A file input renders empty again after the page re-renders, so the interface
+   has to say for itself which dataset is in play. */
+
+.loaded-file {
+    display: flex;
+    gap: .6rem;
+    align-items: baseline;
+    margin: 0 0 .2rem;
+    padding: .75rem 1rem;
+    border: 1px solid rgba(8, 118, 90, .28);
+    border-radius: 12px;
+    background: rgba(8, 118, 90, .08);
+    color: var(--theme-coffee);
+    font-size: .85rem;
+}
+
+.loaded-file strong { font-weight: 750; }
+
+.loaded-tick {
+    color: #08765a;
+    font-size: .95rem;
+    font-weight: 800;
+}

@@ -83,8 +83,20 @@
             <input type="hidden" name="action" value="upload">
 
             <div class="form-grid">
+                {% if data_filename %}
+                    <div class="form-group full">
+                        <p class="loaded-file">
+                            <span class="loaded-tick" aria-hidden="true">&check;</span>
+                            <span>
+                                <strong>{{ data_filename }}</strong> is loaded
+                                &mdash; {{ row_count }} rows, {{ column_count }} columns.
+                            </span>
+                        </p>
+                    </div>
+                {% endif %}
+
                 <div class="form-group full">
-                    <label for="csv_file">CSV file</label>
+                    <label for="csv_file">{% if data_filename %}Replace it with another CSV{% else %}CSV file{% endif %}</label>
 
                     <input
                         type="file"
@@ -109,7 +121,7 @@
 
                 <div class="form-group full">
                     <button class="button" type="submit">
-                        Upload and analyze dataset
+                        {% if data_filename %}Replace dataset{% else %}Upload and analyze dataset{% endif %}
                     </button>
                 </div>
             </div>

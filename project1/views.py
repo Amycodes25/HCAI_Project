@@ -517,6 +517,7 @@ def index(request):
     # Clear the saved dataset and start a fresh session state.
     if request.method == "POST" and request.POST.get("action") == "reset":
         request.session.pop("data", None)
+        request.session.pop("data_filename", None)
         request.session.modified = True
         return render(request, "project1/index.html", context)
 
@@ -565,6 +566,11 @@ def index(request):
 
             request.session["data"] = df.to_json(orient="split")
 
+            # A file input always renders empty after the page re-renders, so
+            # without remembering the name the interface silently loses track of
+            # which dataset is loaded and looks as though nothing happened.
+            request.session["data_filename"] = csv_file.name
+
         else:
             df = load_dataframe_from_session(request)
 
@@ -587,6 +593,7 @@ def index(request):
 
             default_target = choose_default_target(available_columns)
 
+            context["data_filename"] = request.session.get("data_filename")
             context["data_preview"] = df.head().to_html(
                 classes="data-table",
                 index=False,
