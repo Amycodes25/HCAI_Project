@@ -1,0 +1,79 @@
+{
+  "model": "TF-IDF + Logistic Regression",
+  "dataset": "AG News",
+  "train_samples": 120000,
+  "test_samples": 7600,
+  "test_accuracy": 0.922368,
+  "class_names": [
+    "World",
+    "Sports",
+    "Business",
+    "Sci/Tech"
+  ],
+  "classification_report": {
+    "World": {
+      "precision": 0.9371954520844613,
+      "recall": 0.9110526315789473,
+      "f1-score": 0.9239391513210569,
+      "support": 1900.0
+    },
+    "Sports": {
+      "precision": 0.9559426229508197,
+      "recall": 0.9821052631578947,
+      "f1-score": 0.9688473520249221,
+      "support": 1900.0
+    },
+    "Business": {
+      "precision": 0.8980350504514073,
+      "recall": 0.89,
+      "f1-score": 0.893999471319059,
+      "support": 1900.0
+    },
+    "Sci/Tech": {
+      "precision": 0.8978102189781022,
+      "recall": 0.9063157894736842,
+      "f1-score": 0.9020429544264013,
+      "support": 1900.0
+    },
+    "accuracy": 0.9223684210526316,
+    "macro avg": {
+      "precision": 0.9222458361161976,
+      "recall": 0.9223684210526315,
+      "f1-score": 0.9222072322728598,
+      "support": 7600.0
+    },
+    "weighted avg": {
+      "precision": 0.9222458361161976,
+      "recall": 0.9223684210526316,
+      "f1-score": 0.9222072322728598,
+      "support": 7600.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      1731,
+      53,
+      69,
+      47
+    ],
+    [
+      15,
+      1866,
+      14,
+      5
+    ],
+    [
+      51,
+      14,
+      1691,
+      144
+    ],
+    [
+      50,
+      19,
+      109,
+      1722
+    ]
+  ],
+  "random_state": 42
+}

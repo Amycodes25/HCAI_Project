@@ -1,0 +1,57 @@
+{
+  "ai_accuracy": 0.9223684210526316,
+  "expert_accuracy": 0.8426315789473684,
+  "team_accuracy": 0.9484210526315789,
+  "deferral_rate": 0.3753947368421053,
+  "coverage": 0.6246052631578948,
+  "deferred_count": 2853,
+  "non_deferred_count": 4747,
+  "beneficial_deferrals": 424,
+  "harmful_deferrals": 226,
+  "oracle_accuracy": 0.9917105263157895,
+  "deferred_accuracy": 0.9008061689449702,
+  "beneficial_deferral_rate": 0.1486154924640729,
+  "harmful_deferral_rate": 0.07921486154924641,
+  "non_deferred_accuracy": 0.9770381293448493,
+  "margin": 0.0,
+  "test_samples": 7600,
+  "competence_model": "Logistic Regression using AI category probabilities",
+  "per_class": [
+    {
+      "label": 0,
+      "class_name": "World",
+      "test_samples": 1900,
+      "ai_accuracy": 0.9110526315789473,
+      "expert_accuracy": 0.8589473684210527,
+      "team_accuracy": 0.94,
+      "deferral_rate": 0.2773684210526316
+    },
+    {
+      "label": 1,
+      "class_name": "Sports",
+      "test_samples": 1900,
+      "ai_accuracy": 0.9821052631578947,
+      "expert_accuracy": 0.71,
+      "team_accuracy": 0.966842105263158,
+      "deferral_rate": 0.11210526315789474
+    },
+    {
+      "label": 2,
+      "class_name": "Business",
+      "test_samples": 1900,
+      "ai_accuracy": 0.89,
+      "expert_accuracy": 0.9752631578947368,
+      "team_accuracy": 0.9557894736842105,
+      "deferral_rate": 0.7336842105263158
+    },
+    {
+      "label": 3,
+      "class_name": "Sci/Tech",
+      "test_samples": 1900,
+      "ai_accuracy": 0.9063157894736842,
+      "expert_accuracy": 0.8263157894736842,
+      "team_accuracy": 0.9310526315789474,
+      "deferral_rate": 0.37842105263157894
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+# Development-only requirements.
+#
+# Not needed to run the site: Project 3 serves from the committed artifacts in
+# learning_to_defer/artifacts/, and `datasets` is imported only by the offline
+# training scripts under learning_to_defer/services/.
+
+-r requirements.txt
+
+datasets>=2.18,<4.0

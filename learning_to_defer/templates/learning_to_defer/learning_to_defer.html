@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'learning_to_defer/style.css' %}"
+>
+<link rel="stylesheet" href="{% static 'learning_to_defer/project_theme.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<main class="project-shell">
+
+    {% include "learning_to_defer/_task_nav.html" with active_task="task3" %}
+
+    <header class="page-header">
+        <p class="eyebrow">
+            Task 3 · Learning to Defer
+        </p>
+
+        <h1>Who should answer: the AI or the expert?</h1>
+
+        <p>
+            The system compares the AI confidence with the
+            estimated expert competence. It defers when the
+            expert is expected to be more reliable.
+        </p>
+    </header>
+
+    {% if metrics %}
+
+        <section class="metric-grid">
+
+            <article class="metric-card">
+                <span>AI-only accuracy</span>
+
+                <strong>
+                    {{ metrics.ai_accuracy_percent|floatformat:2 }}%
+                </strong>
+
+                <small>
+                    Task 1 classifier
+                </small>
+            </article>
+
+            <article class="metric-card">
+                <span>Expert-only accuracy</span>
+
+                <strong>
+                    {{ metrics.expert_accuracy_percent|floatformat:2 }}%
+                </strong>
+
+                <small>
+                    Task 2 simulated expert
+                </small>
+            </article>
+
+            <article class="metric-card highlight-card">
+                <span>Human-AI team accuracy</span>
+
+                <strong>
+                    {{ metrics.team_accuracy_percent|floatformat:2 }}%
+                </strong>
+
+                <small>
+                    Improvement:
+                    +{{ metrics.accuracy_improvement_percent|floatformat:2 }}
+                    percentage points
+                </small>
+            </article>
+
+            <article class="metric-card">
+                <span>Deferral rate</span>
+
+                <strong>
+                    {{ metrics.deferral_rate_percent|floatformat:2 }}%
+                </strong>
+
+                <small>
+                    {{ metrics.deferred_count }} test articles
+                </small>
+            </article>
+
+        </section>
+
+        <section class="decision-flow">
+
+            <h2>How the decision works</h2>
+
+            <div class="decision-steps">
+
+                <article>
+                    <span>1</span>
+                    <h3>AI predicts</h3>
+                    <p>
+                        The baseline classifier produces a
+                        category and confidence.
+                    </p>
+                </article>
+
+                <article>
+                    <span>2</span>
+                    <h3>Estimate expert competence</h3>
+                    <p>
+                        A competence model estimates how likely
+                        the expert is to be correct.
+                    </p>
+                </article>
+
+                <article>
+                    <span>3</span>
+                    <h3>Select the decision-maker</h3>
+                    <p>
+                        The system chooses the source with the
+                        greater estimated reliability.
+                    </p>
+                </article>
+
+            </div>
+
+        </section>
+
+        <section class="results-table-card">
+
+            <h2>Deferral quality</h2>
+
+            <div class="table-wrap">
+
+                <table>
+                    <tbody>
+                        <tr>
+                            <th>Accuracy on deferred articles</th>
+                            <td>
+                                {{ metrics.deferred_accuracy_percent|floatformat:2 }}%
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Accuracy on non-deferred articles</th>
+                            <td>
+                                {{ metrics.non_deferred_accuracy_percent|floatformat:2 }}%
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Beneficial deferrals</th>
+                            <td>
+                                {{ metrics.beneficial_deferrals }}
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Harmful deferrals</th>
+                            <td>
+                                {{ metrics.harmful_deferrals }}
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Net additional correct answers</th>
+                            <td>
+                                {{ metrics.net_benefit }}
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Oracle upper-bound accuracy</th>
+                            <td>
+                                {{ metrics.oracle_accuracy_percent|floatformat:2 }}%
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+
+        </section>
+
+        <section class="results-table-card">
+
+            <h2>Performance by category</h2>
+
+            <div class="table-wrap">
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>AI</th>
+                            <th>Expert</th>
+                            <th>Team</th>
+                            <th>Deferral rate</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for category in metrics.per_class %}
+                            <tr>
+                                <td>
+                                    {{ category.class_name }}
+                                </td>
+
+                                <td>
+                                    {{ category.ai_accuracy_percent|floatformat:2 }}%
+                                </td>
+
+                                <td>
+                                    {{ category.expert_accuracy_percent|floatformat:2 }}%
+                                </td>
+
+                                <td>
+                                    <strong>
+                                        {{ category.team_accuracy_percent|floatformat:2 }}%
+                                    </strong>
+                                </td>
+
+                                <td>
+                                    {{ category.deferral_rate_percent|floatformat:2 }}%
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+
+        </section>
+
+    {% else %}
+
+        <section class="status-card">
+
+            <span class="status-dot"></span>
+
+            <div>
+                <h2>Task 3 has not been evaluated</h2>
+
+                <p>
+                    Run
+                    <code>
+                        python -m
+                        learning_to_defer.services.evaluate_deferral
+                    </code>
+                    to generate the results.
+                </p>
+            </div>
+
+        </section>
+
+    {% endif %}
+
+</main>
+
+{% endblock %}

@@ -172,17 +172,17 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
-
 # Project-specific
-# User-uploaded CSVs and generated matplotlib plots
 media/*
 !media/.gitkeep
-# Output of `python manage.py collectstatic`
+
+# Django collected static files
 assets/
-# Local IDE/editor
+
+# Local IDE/editor files
 .vscode/
 .idea/
-# OS
+
+# Operating system files
 .DS_Store
 Thumbs.db
-

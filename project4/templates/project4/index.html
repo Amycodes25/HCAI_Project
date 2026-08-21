@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'project4/style.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="box">
+    <div class="title-container">
+        <div class="title">Project 4: Preference Elicitation</div>
+    </div>
+
+    <div class="main-text">
+        <p class="status-note">
+            This project is in progress. The finished landing page offers two
+            things: a PDF describing the method and the study design, and a
+            button that starts the study itself.
+        </p>
+
+        <h2>Tasks</h2>
+        <ol class="task-list">
+            <li>Choose and justify a feature representation for the IMDB 5000 movies.</li>
+            <li>Extend the Bradley&ndash;Terry model to rankings of more than two items.</li>
+            <li>Design a user study comparing pairwise choice against ranking ten movies.</li>
+            <li>Implement the interface a participant would actually use.</li>
+        </ol>
+
+        <p><a class="project-link" href="{% url 'home:index' %}">Back to the project hub</a></p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'learning_to_defer/overview.css' %}">
+<link rel="stylesheet" href="{% static 'learning_to_defer/classify.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="overview-dashboard classifier-page">
+    <a class="skip-link" href="#classifier-content">Skip to classifier</a>
+
+    <aside class="dashboard-sidebar" aria-label="Project navigation">
+        <div>
+            <a class="brand" href="{% url 'learning_to_defer:overview' %}">
+                <span class="brand-mark" aria-hidden="true">H·AI</span>
+                <span><strong>NewsLens</strong><small>Learning-to-Defer</small></span>
+            </a>
+
+            <p class="nav-label">Project workspace</p>
+            <nav class="sidebar-nav">
+                <a href="{% url 'learning_to_defer:overview' %}">
+                    <span>Overview</span><small>Dashboard</small>
+                </a>
+                <a href="{% url 'learning_to_defer:baseline' %}">
+                    <span>Task 1</span><small>Baseline AI</small>
+                </a>
+                <a href="{% url 'learning_to_defer:simulated_expert' %}">
+                    <span>Task 2</span><small>Simulated expert</small>
+                </a>
+                <a href="{% url 'learning_to_defer:learning_to_defer' %}">
+                    <span>Task 3</span><small>Learn to defer</small>
+                </a>
+                <a href="{% url 'learning_to_defer:active_learning' %}">
+                    <span>Task 4</span><small>Active learning</small>
+                </a>
+                <a href="{% url 'learning_to_defer:human_expert' %}">
+                    <span>Task 5</span><small>Human expert</small>
+                </a>
+                <a class="active" href="{% url 'learning_to_defer:classify' %}" aria-current="page">
+                    <span>Classifier</span><small>Live demo</small>
+                </a>
+            </nav>
+        </div>
+
+        <div class="sidebar-footer">
+            <p>Human-Centric Artificial Intelligence</p>
+            <strong>Project 3 · Group 29</strong>
+        </div>
+    </aside>
+
+    <main class="dashboard-main classifier-main" id="classifier-content">
+        <header class="dashboard-topbar">
+            <div>
+                <p class="breadcrumb">Project 3 / Live classifier</p>
+                <h2>Article Decision Lab</h2>
+            </div>
+            <div class="topbar-actions">
+                <a class="button button-light" href="{% url 'learning_to_defer:overview' %}">Back to overview</a>
+                <a class="button button-dark" href="{% static 'learning_to_defer/report.pdf' %}" target="_blank" rel="noopener">View report</a>
+            </div>
+        </header>
+
+        <section class="classifier-hero">
+            <div>
+                <p class="eyebrow">Live demo · Human + AI collaboration</p>
+                <h1>Classify your own<br>news article.</h1>
+                <p>Paste a news story to see the predicted topic, AI confidence, estimated expert competence, and the final decision to answer or defer.</p>
+            </div>
+            <div class="hero-orbit" aria-hidden="true">
+                <span class="orbit-label orbit-ai">AI</span>
+                <span class="orbit-core">?</span>
+                <span class="orbit-label orbit-human">EXPERT</span>
+            </div>
+        </section>
+
+        {% if not models_available %}
+        <section class="classifier-notice" role="status">
+            <span class="notice-icon" aria-hidden="true">!</span>
+            <div>
+                <h2>Models are not available yet</h2>
+                <p>Run the Task 1 and Task 3 scripts so that <code>baseline_pipeline.joblib</code> and <code>competence_model_full.joblib</code> exist.</p>
+            </div>
+        </section>
+        {% else %}
+        <section class="classifier-workspace" aria-labelledby="article-input-heading">
+            <div class="article-input-card">
+                <div class="card-heading">
+                    <span class="heading-icon" aria-hidden="true">Aa</span>
+                    <div>
+                        <p class="eyebrow">Article input</p>
+                        <h2 id="article-input-heading">What would you like to classify?</h2>
+                    </div>
+                </div>
+
+                <form method="post" class="classifier-form">
+                    {% csrf_token %}
+                    <div class="field-label-row">
+                        <label for="{{ form.text.id_for_label }}">Paste or type a news article</label>
+                        <span>Maximum 10,000 characters</span>
+                    </div>
+                    {{ form.text }}
+                    {% if form.text.errors %}
+                    <p class="form-error" role="alert">{{ form.text.errors.0 }}</p>
+                    {% endif %}
+
+                    <div class="form-tools">
+                        <div class="sample-tools">
+                            <span>Try an example:</span>
+                            <button type="button" class="sample-chip" data-sample="World leaders met today to discuss a new international agreement focused on regional security and economic cooperation.">World</button>
+                            <button type="button" class="sample-chip" data-sample="The home team secured a dramatic victory in the final minutes, moving to the top of the league table after a strong performance.">Sports</button>
+                            <button type="button" class="sample-chip" data-sample="The company reported stronger quarterly revenue as demand increased, while executives announced plans to expand into new markets.">Business</button>
+                            <button type="button" class="sample-chip" data-sample="Researchers introduced a new artificial-intelligence system designed to improve computing efficiency and support scientific discovery.">Sci/Tech</button>
+                        </div>
+                        <button type="submit" class="classify-button">
+                            <span>Classify article</span><span aria-hidden="true">→</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <aside class="decision-guide" aria-labelledby="decision-guide-heading">
+                <p class="eyebrow">Behind the decision</p>
+                <h2 id="decision-guide-heading">How it works</h2>
+                <ol>
+                    <li><span>01</span><div><strong>Predict</strong><p>The baseline AI estimates a probability for each news topic.</p></div></li>
+                    <li><span>02</span><div><strong>Estimate</strong><p>The competence model estimates how likely the expert is to be correct.</p></div></li>
+                    <li><span>03</span><div><strong>Compare</strong><p>The system chooses the more reliable team member for this article.</p></div></li>
+                </ol>
+                <div class="privacy-note"><span aria-hidden="true">✓</span><p>The article is processed only for this prediction and is not saved by this form.</p></div>
+            </aside>
+        </section>
+
+        {% if result %}
+        <section class="classifier-results" aria-labelledby="result-heading">
+            <div class="section-heading result-section-heading">
+                <div><p class="eyebrow">Classification complete</p><h2 id="result-heading">Your result</h2></div>
+                <a class="text-link" href="{% url 'learning_to_defer:classify' %}">Clear result <span aria-hidden="true">↻</span></a>
+            </div>
+
+            <article class="decision-banner {% if result.would_defer %}decision-defer{% else %}decision-ai{% endif %}">
+                <div class="decision-symbol" aria-hidden="true">{% if result.would_defer %}H{% else %}AI{% endif %}</div>
+                <div class="decision-copy">
+                    <p class="decision-kicker">Final team decision</p>
+                    {% if result.would_defer %}
+                    <h3>Defer this article to the expert</h3>
+                    <p>Estimated expert competence is higher than the AI's confidence for this article.</p>
+                    {% else %}
+                    <h3>Let the AI answer this article</h3>
+                    <p>The AI's confidence is at least as high as the estimated expert competence.</p>
+                    {% endif %}
+                </div>
+                <div class="prediction-pill"><span>Predicted topic</span><strong>{{ result.ai_category }}</strong></div>
+            </article>
+
+            <div class="result-metrics">
+                <article><span>AI prediction</span><strong>{{ result.ai_category }}</strong><small>Most probable topic</small></article>
+                <article><span>AI confidence</span><strong>{{ result.ai_confidence_percent|floatformat:1 }}%</strong><small>Highest class probability</small></article>
+                <article><span>Expert competence</span><strong>{{ result.expert_competence_percent|floatformat:1 }}%</strong><small>Estimated probability</small></article>
+            </div>
+
+            <article class="probability-card">
+                <div class="probability-heading">
+                    <div><p class="eyebrow">Model confidence</p><h3>Probability by topic</h3></div>
+                    <p>These four probabilities add up to approximately 100%.</p>
+                </div>
+                <div class="probability-list">
+                    {% for entry in result.class_probabilities %}
+                    <div class="probability-row">
+                        <div class="probability-label"><span>{{ entry.class_name }}</span><strong>{{ entry.probability_percent|floatformat:1 }}%</strong></div>
+                        <progress value="{{ entry.probability_percent }}" max="100" aria-label="{{ entry.class_name }} probability"></progress>
+                    </div>
+                    {% endfor %}
+                </div>
+            </article>
+        </section>
+        {% endif %}
+        {% endif %}
+    </main>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    document.querySelectorAll(".sample-chip").forEach((button) => {
+        button.addEventListener("click", () => {
+            const textarea = document.querySelector(".classifier-form textarea");
+            if (!textarea) return;
+            textarea.value = button.dataset.sample;
+            textarea.focus();
+            textarea.dispatchEvent(new Event("input", { bubbles: true }));
+        });
+    });
+</script>
+{% endblock script %}

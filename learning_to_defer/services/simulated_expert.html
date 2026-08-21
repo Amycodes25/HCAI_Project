@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'learning_to_defer/style.css' %}"
+>
+{% endblock %}
+
+{% block content %}
+
+<main class="project-shell">
+
+    <nav class="project-nav">
+        <a href="{% url 'learning_to_defer:overview' %}">
+            Overview
+        </a>
+
+        <a href="{% url 'learning_to_defer:baseline' %}">
+            Task 1
+        </a>
+
+        <a
+            class="active"
+            href="{% url 'learning_to_defer:simulated_expert' %}"
+        >
+            Task 2
+        </a>
+    </nav>
+
+    <header class="page-header">
+        <p class="eyebrow">
+            Task 2 · Expert simulation
+        </p>
+
+        <h1>Meet the Business news specialist</h1>
+
+        <p>
+            This simulated expert is intentionally imperfect.
+            It is highly reliable for Business news, but less
+            reliable for Sports. This creates a meaningful
+            reason for the AI and expert to collaborate.
+        </p>
+    </header>
+
+    {% if metrics %}
+
+        <section class="metric-grid">
+
+            <article class="metric-card">
+                <span>Overall expert accuracy</span>
+
+                <strong>
+                    {{ metrics.overall_accuracy_percent|floatformat:2 }}%
+                </strong>
+
+                <small>
+                    Evaluated on {{ metrics.test_samples }} articles
+                </small>
+            </article>
+
+            <article class="metric-card">
+                <span>Strongest category</span>
+
+                <strong class="model-name">
+                    {{ metrics.strength }}
+                </strong>
+
+                <small>
+                    Designed area of expertise
+                </small>
+            </article>
+
+            <article class="metric-card">
+                <span>Weakest category</span>
+
+                <strong class="model-name">
+                    {{ metrics.weakness }}
+                </strong>
+
+                <small>
+                    Intentional limitation
+                </small>
+            </article>
+
+            <article class="metric-card">
+                <span>Random seed</span>
+
+                <strong>
+                    {{ metrics.seed }}
+                </strong>
+
+                <small>
+                    Makes results reproducible
+                </small>
+            </article>
+
+        </section>
+
+        <section class="results-table-card">
+
+            <h2>Expert competence by category</h2>
+
+            <p>
+                Designed competence is the probability assigned
+                in the expert profile. Measured accuracy is the
+                result obtained on the official test set.
+            </p>
+
+            <div class="table-wrap">
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Designed competence</th>
+                            <th>Measured accuracy</th>
+                            <th>Test articles</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for category in metrics.per_class %}
+                            <tr>
+                                <td>
+                                    {{ category.class_name }}
+                                </td>
+
+                                <td>
+                                    {{ category.designed_accuracy_percent|floatformat:0 }}%
+                                </td>
+
+                                <td>
+                                    <strong>
+                                        {{ category.measured_accuracy_percent|floatformat:2 }}%
+                                    </strong>
+                                </td>
+
+                                <td>
+                                    {{ category.test_samples }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+        </section>
+
+    {% else %}
+
+        <section class="status-card">
+
+            <span class="status-dot"></span>
+
+            <div>
+                <h2>Expert not evaluated yet</h2>
+
+                <p>
+                    Run
+                    <code>
+                        python -m
+                        learning_to_defer.services.evaluate_expert
+                    </code>
+                    to generate the results.
+                </p>
+            </div>
+
+        </section>
+
+    {% endif %}
+
+    <section class="explanation-grid">
+
+        <article>
+            <h2>Why is the expert imperfect?</h2>
+
+            <p>
+                A perfect expert would make every deferral
+                decision obvious. Real experts also have
+                strengths and limitations.
+            </p>
+        </article>
+
+        <article>
+            <h2>Why class-dependent competence?</h2>
+
+            <p>
+                The expert performs differently across news
+                categories. It is strongest for Business and
+                weakest for Sports.
+            </p>
+        </article>
+
+        <article>
+            <h2>Why deterministic decisions?</h2>
+
+            <p>
+                The same article always receives the same
+                simulated response. This makes later
+                comparisons fair and reproducible.
+            </p>
+        </article>
+
+    </section>
+
+</main>
+
+{% endblock %}

@@ -1,0 +1,20 @@
+.status-note {
+  background-color: #eef1f4;
+  border-left: 4px solid #275cb2;
+  padding: 12px 16px;
+  margin: 0 0 20px 0;
+}
+
+.task-list {
+  text-align: left;
+  margin: 0 0 24px 0;
+}
+
+.task-list li {
+  padding: 4px 0;
+}
+
+.project-link {
+  display: inline-block;
+  margin-top: 8px;
+}

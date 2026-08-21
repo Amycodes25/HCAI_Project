@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'learning_to_defer/style.css' %}"
+>
+<link rel="stylesheet" href="{% static 'learning_to_defer/project_theme.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<main class="project-shell">
+
+    {% include "learning_to_defer/_task_nav.html" with active_task="task4" %}
+
+    <header class="page-header">
+        <p class="eyebrow">
+            Task 4 · Active Learning
+        </p>
+
+        <h1>
+            Can we discover expert competence with fewer queries?
+        </h1>
+
+        <p>
+            The active strategy selects articles near the
+            AI-expert decision boundary. We compare it with
+            random querying across six expert-query budgets.
+        </p>
+    </header>
+
+    {% if metrics %}
+
+        <section class="metric-grid">
+
+            <article class="metric-card">
+                <span>Training articles</span>
+
+                <strong>
+                    {{ metrics.number_of_training_articles }}
+                </strong>
+
+                <small>
+                    Available to the AI classifier
+                </small>
+            </article>
+
+            <article class="metric-card">
+                <span>Smallest query budget</span>
+
+                <strong>50</strong>
+
+                <small>
+                    Only 0.04% of training articles
+                </small>
+            </article>
+
+            <article class="metric-card highlight-card">
+                <span>Query efficiency</span>
+
+                <strong>
+                    {{ query_efficiency }}×
+                </strong>
+
+                <small>
+                    Active 100 matched random 500
+                </small>
+            </article>
+
+            <article class="metric-card">
+                <span>Repeated experiments</span>
+
+                <strong>
+                    {{ metrics.random_states|length }}
+                </strong>
+
+                <small>
+                    Different random states
+                </small>
+            </article>
+
+        </section>
+
+        <section class="insight-banner">
+
+            <div>
+                <span class="insight-label">
+                    Main finding
+                </span>
+
+                <h2>
+                    Active querying is most valuable when
+                    expert labels are scarce.
+                </h2>
+
+                <p>
+                    With a budget of 50, active learning
+                    achieved higher team accuracy, fewer
+                    deferrals and a larger proportion of
+                    useful deferrals than random sampling.
+                </p>
+            </div>
+
+            {% if full_supervision_accuracy %}
+
+                <div class="reference-result">
+                    <span>
+                        Full-supervision reference
+                    </span>
+
+                    <strong>
+                        {{ full_supervision_accuracy|floatformat:2 }}%
+                    </strong>
+
+                    <small>
+                        Task 3 using all expert labels
+                    </small>
+                </div>
+
+            {% endif %}
+        </section>
+
+        <section class="results-table-card">
+
+            <h2>Team accuracy comparison</h2>
+
+            <p>
+                Mean accuracy and standard deviation across
+                five repetitions. Higher accuracy is better.
+            </p>
+
+            <div class="table-wrap">
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Query budget</th>
+                            <th>Random accuracy</th>
+                            <th>Active accuracy</th>
+                            <th>Active advantage</th>
+                            <th>Random deferral</th>
+                            <th>Active deferral</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for row in comparison_rows %}
+
+                            <tr>
+                                <td>
+                                    <strong>
+                                        {{ row.budget }}
+                                    </strong>
+                                </td>
+
+                                <td>
+                                    {{ row.random_accuracy|floatformat:2 }}%
+                                    <small>
+                                        ±{{ row.random_accuracy_std|floatformat:2 }}%
+                                    </small>
+                                </td>
+
+                                <td>
+                                    <strong class="active-result">
+                                        {{ row.active_accuracy|floatformat:2 }}%
+                                    </strong>
+
+                                    <small>
+                                        ±{{ row.active_accuracy_std|floatformat:2 }}%
+                                    </small>
+                                </td>
+
+                                <td class="positive-result">
+                                    +{{ row.active_advantage|floatformat:2 }}
+                                    pp
+                                </td>
+
+                                <td>
+                                    {{ row.random_deferral|floatformat:2 }}%
+                                </td>
+
+                                <td>
+                                    {{ row.active_deferral|floatformat:2 }}%
+                                </td>
+                            </tr>
+
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+        </section>
+
+        <section class="results-table-card">
+
+            <h2>Competence and deferral quality</h2>
+
+            <p>
+                AUC evaluates competence ranking. Higher is
+                better. Brier evaluates probability
+                calibration. Lower is better.
+            </p>
+
+            <div class="table-wrap">
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Budget</th>
+                            <th>Random AUC</th>
+                            <th>Active AUC</th>
+                            <th>Random Brier</th>
+                            <th>Active Brier</th>
+                            <th>Random useful</th>
+                            <th>Active useful</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for row in comparison_rows %}
+
+                            <tr>
+                                <td>
+                                    <strong>
+                                        {{ row.budget }}
+                                    </strong>
+                                </td>
+
+                                <td>
+                                    {{ row.random_auc|floatformat:3 }}
+                                </td>
+
+                                <td>
+                                    {{ row.active_auc|floatformat:3 }}
+                                </td>
+
+                                <td>
+                                    {{ row.random_brier|floatformat:3 }}
+                                </td>
+
+                                <td>
+                                    {{ row.active_brier|floatformat:3 }}
+                                </td>
+
+                                <td>
+                                    {{ row.random_useful_rate|floatformat:2 }}%
+                                </td>
+
+                                <td>
+                                    <strong class="active-result">
+                                        {{ row.active_useful_rate|floatformat:2 }}%
+                                    </strong>
+                                </td>
+                            </tr>
+
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+        </section>
+
+        <section class="explanation-grid">
+
+            <article>
+                <h2>Random querying</h2>
+
+                <p>
+                    Random sampling represents the natural
+                    data distribution and generally provides
+                    better probability calibration.
+                </p>
+            </article>
+
+            <article>
+                <h2>Active querying</h2>
+
+                <p>
+                    Active learning prioritises cases close
+                    to the deferral boundary, where choosing
+                    between AI and expert is difficult.
+                </p>
+            </article>
+
+            <article>
+                <h2>The trade-off</h2>
+
+                <p>
+                    Active learning improves decision
+                    efficiency, but its selected data can
+                    produce slightly less calibrated
+                    competence probabilities.
+                </p>
+            </article>
+
+        </section>
+
+    {% else %}
+
+        <section class="status-card">
+
+            <span class="status-dot"></span>
+
+            <div>
+                <h2>
+                    Task 4 results are unavailable
+                </h2>
+
+                <p>
+                    Run
+                    <code>
+                        python -m
+                        learning_to_defer.services.evaluate_active_learning
+                    </code>
+                    to generate the experiment.
+                </p>
+            </div>
+
+        </section>
+
+    {% endif %}
+
+</main>
+
+{% endblock %}

@@ -1,90 +1,93 @@
-# HCAI-Project-SoSe26
+# HCAI Group Project — SoSe 2026
 
-Coursework for **Human-Centric Artificial Intelligence**, TUHH SoSe 2026.
+Coursework for **Human-Centric Artificial Intelligence**, TUHH.
 
-All projects for the course live in this single Django project, one app per
-project, accessible from a shared home launch page.
+All four course projects live in this single Django project, one app per project,
+reachable from a shared launch page at the site root.
 
-- **Upstream skeleton:** https://github.com/ppaamm/HCAI-PBL
-- **Course brief (Project 1):** see `docs/project1-brief.pdf` *(add after first sync)*
+Upstream skeleton: <https://github.com/ppaamm/HCAI-PBL>
 
 ## Team
 
 | Name | Matriculation |
 |------|---------------|
-| _TBD_ | _TBD_ |
-| _TBD_ | _TBD_ |
-| _TBD_ | _TBD_ |
-| _TBD_ | _TBD_ |
+| Darren | _to add_ |
+| Chandana | _to add_ |
+| Divya | _to add_ |
+| Amritha | _to add_ |
 
-Update this table and `home/views.py` together — both are displayed on the home page.
+The names shown on the home page come from `home/views.py`, not from this table.
+Update both together.
+
+## Projects
+
+| App | URL | Project | Status |
+|-----|-----|---------|--------|
+| `project1` | `/project1/` | Supervised Learning Interface | Working |
+| `project2` | `/project2/` | Explainability | Placeholder — port in progress |
+| `learning_to_defer` | `/project3/` | Active Learning for Learning-to-Defer | Working |
+| `project4` | `/project4/` | Preference Elicitation | Placeholder — in progress |
 
 ## Setup
 
-Requires Python 3.11+.
+Requires Python 3.11 or newer.
 
 ```bash
-# 1. Clone
-git clone https://github.com/darrennoronha75/HCAI-Project-SoSe26.git
-cd HCAI-Project-SoSe26
+git clone https://github.com/Amycodes25/HCAI_Project.git
+cd HCAI_Project
 
-# 2. Virtualenv
 python -m venv .venv
 # Windows:
 .venv\Scripts\activate
 # macOS / Linux:
 source .venv/bin/activate
 
-# 3. Install deps
 pip install -r requirements.txt
-
-# 4. Apply initial migrations (SQLite)
 python manage.py migrate
-
-# 5. Run the dev server
 python manage.py runserver
-# → http://127.0.0.1:8000/home/
 ```
 
-## Notebooks
+Then open <http://127.0.0.1:8000/>.
 
-We iterate on concepts and ML logic in Jupyter first, then port stable code
-into `project1/ml/`. Run from the repo root:
+**`migrate` is not optional.** Project 1 keeps the uploaded dataset in the Django
+session, the session backend is the database, and `db.sqlite3` is deliberately not
+committed. Skipping `migrate` makes the first CSV upload fail with
+`no such table: django_session`.
+
+## Development
+
+`requirements-dev.txt` adds `datasets`, which is needed only to regenerate the
+Project 3 artifacts from scratch:
 
 ```bash
-jupyter notebook notebooks/
+pip install -r requirements-dev.txt
 ```
 
-Notebooks are committed. Clear outputs before committing large runs so diffs stay readable.
+The site itself never downloads AG News — Project 3 serves from the committed
+artifacts in `learning_to_defer/artifacts/`.
+
+## Conventions
+
+Set by the course brief; keep to them when adding an app.
+
+- Templates live at `templates/<app>/<file>.html`.
+- Per-app stylesheets live at `static/<app>/style.css`, in addition to the shared
+  `static/style.css`.
+- Templates extend `templates/base.html`.
+- Each app defines `app_name` in its `urls.py`, so URLs are referenced namespaced,
+  as `{% url 'project1:index' %}`.
 
 ## Repository layout
 
 ```
-HCAI-Project-SoSe26/
-├── manage.py
-├── pbl/                    # Django project (settings, root urls)
-├── home/                   # Launch page, group roster, project links
-├── demos/                  # Reference patterns (file upload, matplotlib → PNG)
-├── project1/               # Supervised learning interface (Project 1)
-│   └── ml/                 # Pure-Python ML logic (testable, importable in notebooks)
-├── notebooks/              # Exploratory + prototype notebooks
-├── docs/                   # Design decisions, write-ups for submission
-├── static/                 # Global CSS shared across apps
-├── templates/              # Global base template
-├── media/                  # Uploaded CSVs + generated plots (git-ignored contents)
-├── requirements.txt
-└── .gitignore
+pbl/                  project settings and root URL configuration
+home/                 launch page listing the group and the four projects
+demos/                course-provided examples of file upload and plotting
+project1/             Project 1
+project2/             Project 2
+learning_to_defer/    Project 3
+project4/             Project 4
+static/               shared stylesheet
+templates/base.html   shared page shell
+media/                generated plots and uploads (not committed)
 ```
-
-## Workflow
-
-- One branch: **`main`**. No feature branches.
-- Pull → work → commit → push. Small commits, often.
-- Discuss in notebooks and `docs/` before writing UI code.
-- `upstream` remote is set to the course skeleton — `git fetch upstream` if the
-  course authors publish fixes.
-
-## Project status
-
-- [x] P0: Skeleton imported, team scaffolding in place
-- [ ] P1: Supervised learning interface — see `docs/project1-design.md`
