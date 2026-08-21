@@ -13,32 +13,31 @@
         </a>
 
         {% comment %}
-        These scroll within the page rather than linking to separate URLs.
-        Project 1 is one pipeline whose steps only make sense with the previous
-        one still on screen, so the sidebar tracks progress through it instead of
-        splitting it up. A step is marked done once its output exists.
+        Labelled by the task each step serves, so the vocabulary matches
+        Projects 2, 3 and 4. These scroll within the page rather than linking to
+        separate URLs: Project 1 is one pipeline whose steps only make sense with
+        the previous one still on screen. The current step is marked active.
         {% endcomment %}
-        <p class="nav-label">Pipeline</p>
+        <p class="nav-label">Project workspace</p>
         <nav class="sidebar-nav">
-            <a class="anchor-step done" href="#section-upload">
-                <span class="step-number">1</span>
-                <span>Upload<small>CSV in</small></span>
+            <a href="#section-upload"
+               {% if not row_count %}class="active" aria-current="true"{% endif %}>
+                <span>Task 3</span><small>Upload a CSV</small>
             </a>
-            <a class="anchor-step {% if row_count %}done{% endif %}" href="#section-overview">
-                <span class="step-number">2</span>
-                <span>Overview<small>{% if row_count %}{{ row_count }} rows{% else %}awaiting data{% endif %}</small></span>
+            <a href="#section-overview"
+               {% if row_count and not scatter_plot and not hyperparameter_results %}class="active" aria-current="true"{% endif %}>
+                <span>Task 3</span><small>{% if row_count %}Overview &middot; {{ row_count }} rows{% else %}Dataset overview{% endif %}</small>
             </a>
-            <a class="anchor-step {% if scatter_plot %}done{% endif %}" href="#section-explorer">
-                <span class="step-number">3</span>
-                <span>Explore<small>{% if scatter_plot %}plotted{% else %}scatter plot{% endif %}</small></span>
+            <a href="#section-explorer"
+               {% if scatter_plot and not hyperparameter_results %}class="active" aria-current="true"{% endif %}>
+                <span>Task 3</span><small>{% if scatter_plot %}Explored{% else %}Feature explorer{% endif %}</small>
             </a>
-            <a class="anchor-step {% if hyperparameter_results %}done{% endif %}" href="#section-configure">
-                <span class="step-number">4</span>
-                <span>Configure<small>model and score</small></span>
+            <a href="#section-configure">
+                <span>Task 4</span><small>Model and score</small>
             </a>
-            <a class="anchor-step {% if hyperparameter_results %}done{% endif %}" href="#section-evaluation">
-                <span class="step-number">5</span>
-                <span>Results<small>{% if best_accuracy %}best {{ best_accuracy }}%{% else %}not trained{% endif %}</small></span>
+            <a href="#section-evaluation"
+               {% if hyperparameter_results %}class="active" aria-current="true"{% endif %}>
+                <span>Task 4</span><small>{% if best_accuracy %}Best {{ best_accuracy }}%{% else %}Results{% endif %}</small>
             </a>
         </nav>
     </div>

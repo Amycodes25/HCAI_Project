@@ -17,7 +17,7 @@
         <nav class="sidebar-nav">
             <a href="{% url 'project4:index' %}"
                {% if active_task == 'overview' %}class="active" aria-current="page"{% endif %}>
-                <span>Overview</span><small>Dashboard</small>
+                <span>Overview</span><small>Landing page</small>
             </a>
             <a href="{% url 'project4:features' %}"
                {% if active_task == 'features' %}class="active" aria-current="page"{% endif %}>
@@ -33,7 +33,7 @@
             </a>
             <a href="{% url 'project4:study_consent' %}"
                {% if active_task == 'study' %}class="active" aria-current="page"{% endif %}>
-                <span>Task 4</span><small>Run the study</small>
+                <span>Task 4</span><small>The study interface</small>
             </a>
         </nav>
     </div>

@@ -353,3 +353,9 @@
 @media (prefers-reduced-motion: reduce) {
     .dashboard-main { scroll-behavior: auto; }
 }
+
+
+/* Sections stacked in the main column need air between them. Project 2 set this
+   on its own cards; putting it here means every project on the shell agrees. */
+.dashboard-main > .card { margin-top: 1.15rem; }
+.dashboard-main > .card:first-of-type { margin-top: 1.4rem; }

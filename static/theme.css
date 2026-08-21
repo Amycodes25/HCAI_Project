@@ -47,13 +47,16 @@ div { font-family: inherit; }
    this project scrolls instead, so that wrapper is neutralised too. */
 .grid-parent { display: block; margin: 0; padding: 0; }
 
-.project-shell,
-.dashboard {
+/* The centred single-column shell. Deliberately NOT shared with .dashboard,
+   which is a full-bleed sidebar grid and must reach both edges. */
+.project-shell {
     max-width: 1240px;
     margin: 0 auto;
     padding: 1.2rem clamp(1rem, 3vw, 2.5rem) 4rem;
     font-family: inherit;
 }
+
+.dashboard { font-family: inherit; }
 
 .project-shell p,
 .dashboard p,

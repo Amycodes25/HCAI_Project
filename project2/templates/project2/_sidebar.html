@@ -17,19 +17,16 @@
         feature-effect regions to stay tied to the model and lambda chosen above
         them, so splitting them across URLs would break the thing being asked for.
         {% endcomment %}
-        <p class="nav-label">Tasks</p>
+        <p class="nav-label">Project workspace</p>
         <nav class="sidebar-nav">
-            <a class="anchor-step done" href="#region-model">
-                <span class="step-number">1-3</span>
-                <span>Model<small>{{ family_label }} &middot; {{ accuracy_pct }}%</small></span>
+            <a href="#region-model">
+                <span>Tasks 1&ndash;3</span><small>{{ family_label }} &middot; {{ accuracy_pct }}%</small>
             </a>
-            <a class="anchor-step done" href="#region-counterfactuals">
-                <span class="step-number">4</span>
-                <span>Counterfactuals<small>penguin #{{ point_index }}</small></span>
+            <a href="#region-counterfactuals">
+                <span>Task 4</span><small>Counterfactuals &middot; #{{ point_index }}</small>
             </a>
-            <a class="anchor-step done" href="#region-effects">
-                <span class="step-number">5</span>
-                <span>Feature effects<small>{{ derivative_method }}</small></span>
+            <a href="#region-effects">
+                <span>Task 5</span><small>Feature effects &middot; {{ derivative_method }}</small>
             </a>
         </nav>
     </div>
