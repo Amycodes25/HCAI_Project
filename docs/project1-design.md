@@ -1,92 +1,75 @@
 # Project 1 — Supervised Learning Interface: design notes
 
-Living document. Capture decisions here as you make them, so the final write-up
-and the UI stay in sync.
+A record of the decisions behind the app, and why each one went the way it did.
+The open questions this file started with have been settled; where a decision
+was a judgement call rather than a necessity, the reasoning is given so it can
+be argued with.
 
 ## Problem statement
 
-Build a Django app inside the HCAI-PBL project that lets a user:
+A Django app inside the HCAI project that lets a user:
 
-1. Upload a CSV (feature names in row 0, label in the last column — see PDF §2.4).
-2. Visualise the data (scatter of two chosen features, coloured by class).
-3. Train one or more ML models with a hyperparameter sweep and compare results.
-
-Course brief: `../88_Source_Material/2026/Projects/HCAI-project_01 (4).pdf` *(vault path; add copy under `docs/` when convenient)*.
+1. Upload a CSV, feature names in row 0 and the label in the last column.
+2. Visualise it — a scatter of two chosen features, coloured by class.
+3. Train a model across a hyperparameter sweep and compare the results.
 
 ## Scope decisions
 
-| Decision | Choice | Rationale |
+| Decision | Choice | Reasoning |
 |----------|--------|-----------|
-| Classification, regression, or both? | _TBD_ | Iris is classification. Starting classification-only keeps the UI simple; regression can be a stretch goal. |
-| Problem-type detection | _TBD_ | Auto-detect (heuristic on the label column) vs. user picks in the upload form. |
-| Supported algorithms | _TBD_ | Candidates: LogReg, kNN, Decision Tree, Random Forest, SVM. Pick 3 to start. |
-| Hyperparameter sweep | _TBD_ | Single axis per algorithm (e.g. k for kNN, max_depth for DT) and plot score vs. hyperparameter. |
-| Scoring | _TBD_ | Classification: accuracy, F1-macro, confusion matrix. Regression: MSE, R². |
+| Classification, regression, or both? | **Classification only** | The brief permits choosing. Supporting both would double the branching in a single view for a second problem type the brief only mentions in passing. The app states the limit rather than guessing and failing confusingly. |
+| Problem-type detection | **Neither: the scope is declared** | Auto-detection would silently mislead on an integer-coded target, and asking the user to declare a type the app cannot honour either way is worse. The interface says classification. |
+| Supported algorithms | **Logistic regression, decision tree, k-NN** | Three families that differ in what they can express: a linear boundary, axis-aligned rules, and a local one. That contrast is the point of offering a choice at all. |
+| Hyperparameter sweep | **One axis per family** | The sweep exists to show the user how the score moves with complexity, not to find a global optimum. A grid over several axes would produce a table nobody reads. |
+| Scoring | **User picks: accuracy, F1-macro, balanced accuracy** | The brief asks explicitly who chooses the score. On imbalanced data these disagree — accuracy can look high while a minority class is never predicted — and only the user knows which mistake costs more. |
 
-## What the user controls vs. what's automatic (PDF Task 4)
+## What the user controls, and what the app decides
 
-This is the **human-centric** axis the professor will grade on. Fill in as you decide.
+This is the human-centric axis of Task 4, and it is surfaced in the interface
+itself rather than only recorded here.
 
-| Step | User | Automatic | Notes |
-|------|------|-----------|-------|
-| CSV upload | ✓ | | |
-| Target column | _TBD_ | _TBD_ | Auto-pick last column per PDF, or let user confirm? |
-| Train/test split ratio | _TBD_ | _TBD_ | |
-| Model choice | _TBD_ | _TBD_ | |
-| Hyperparameter range | _TBD_ | _TBD_ | |
-| Scoring metric | _TBD_ | _TBD_ | |
-| Model selection from sweep | _TBD_ | _TBD_ | |
+| Step | Who | Why |
+|------|-----|-----|
+| Dataset | User | |
+| Target column | User | Suggested from the column name, overridable. |
+| Train/test split | User | The trade-off between fitting and measuring is a judgement. |
+| Model family | User | The families differ in expressiveness and readability. |
+| Score | User | See above. |
+| Hyperparameter range | App | Choosing a range well needs knowledge of the model that the interface should not demand of its user. |
+| Preprocessing | App | Median imputation, scaling, one-hot encoding — mechanical once the column types are known. |
+| Identifier columns | App | Detected and dropped, then listed in the results so the decision stays visible and contestable. |
+| Model selection from the sweep | App | The best configuration under the user's chosen score. The whole sweep is shown, so the choice can be checked. |
 
-## Django models (sketch)
+## Structure
 
-```python
-# project1/models.py  (draft — iterate)
+One URL and one view, with the action carried in a hidden field. The four
+actions — upload, plot, train, reset — share the uploaded dataset held in the
+session, and each renders the same page with more of it filled in.
 
-class Dataset(models.Model):
-    uploaded_at = models.DateTimeField(auto_now_add=True)
-    filename = models.CharField(max_length=255)
-    feature_names = models.JSONField()
-    n_rows = models.IntegerField()
-    problem_type = models.CharField(choices=[("classification", ...), ("regression", ...)])
+The alternative considered was a URL per step, with `Dataset`, `TrainingRun`
+and `ModelResult` persisted so that a run could be linked to and runs compared.
+That is the better structure for an app that outlives a session; it was not
+adopted because nothing in the brief needs a run to survive one, and the cost
+is a larger surface for no user-visible gain. The consequence is accepted
+knowingly: a trained run has no address, and a refresh re-submits.
 
-class TrainingRun(models.Model):
-    dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
-    algorithm = models.CharField(max_length=64)
-    hyperparam_name = models.CharField(max_length=64)
-    hyperparam_values = models.JSONField()
-    test_size = models.FloatField(default=0.2)
-    created_at = models.DateTimeField(auto_now_add=True)
+Forms are posted with `fetch` and the page is swapped in place, so an action
+does not throw the page away — but they remain ordinary POST forms and work
+without JavaScript.
 
-class ModelResult(models.Model):
-    run = models.ForeignKey(TrainingRun, on_delete=models.CASCADE)
-    hyperparam_value = models.JSONField()
-    train_score = models.FloatField()
-    test_score = models.FloatField()
-    confusion_matrix = models.JSONField(null=True, blank=True)  # classification only
-```
+## Presentation
 
-## Views / URL plan
+- The results table reports every configuration in the sweep, with the best row
+  highlighted.
+- A sweep plot shows the shape the table cannot: whether the model is under- or
+  over-fitting across the range.
+- A confusion matrix for the best configuration shows *what is confused with
+  what*, which is the part a user can act on. A single score cannot say that.
 
-| URL | View | Purpose |
-|-----|------|---------|
-| `/project1/` | `index` | Landing, links to upload |
-| `/project1/upload/` | `upload_dataset` | POST CSV → `Dataset` row |
-| `/project1/dataset/<id>/` | `dataset_detail` | Preview table + scatter viz |
-| `/project1/dataset/<id>/train/` | `configure_training` | Pick algorithm + hyperparam range |
-| `/project1/run/<id>/` | `run_detail` | Results: sweep plot, confusion matrix, feature importance |
+## Known gaps
 
-## Human-centric polish (grade differentiator)
-
-Things we can add that go beyond "sklearn wrapper":
-
-- [ ] Feature importance panel (permutation importance, works for any sklearn model)
-- [ ] Metric switcher — re-rank models live by accuracy / F1 / etc.
-- [ ] Show the confusion matrix, not just one score
-- [ ] Clear UI callout for "what you chose" vs "what we chose for you"
-- [ ] Brief written justification in this doc for each automation decision
-
-## Open questions for the team
-
-1. Do we want one big "train everything" button or one model at a time?
-2. Persist datasets across sessions, or session-scoped?
-3. One CSS file per app, or one global stylesheet?
+- Regression is unsupported, by the decision above.
+- `project1/ml/` is empty. The extraction it was created for did not happen, and
+  its docstring now says so rather than claiming to be the source of truth.
+- Feature importance is not shown. It was on the original wish list; it is
+  genuinely useful and simply was not reached.

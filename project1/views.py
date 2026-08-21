@@ -15,7 +15,8 @@ from django.shortcuts import render
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import (accuracy_score, balanced_accuracy_score,
+                             confusion_matrix, f1_score)
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.pipeline import Pipeline
@@ -198,6 +199,72 @@ def create_scatter_plot(df, x_feature, y_feature, target):
     return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
 
+def encode_figure(figure):
+    buffer = BytesIO()
+    figure.tight_layout()
+    figure.savefig(buffer, format="png", dpi=130, bbox_inches="tight")
+    plt.close(figure)
+    buffer.seek(0)
+    return base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+
+def create_sweep_plot(results, parameter_name, score_label):
+    """The score against the swept hyperparameter.
+
+    The table already carries the numbers; the plot carries the shape, which is
+    what tells the user whether the model is under- or over-fitting.
+    """
+    labels = [str(row["parameter"]) for row in results]
+    scores = [row["accuracy"] for row in results]
+
+    figure, axis = plt.subplots(figsize=(7.5, 3.8))
+    axis.plot(labels, scores, "-o", color="#62baf9", linewidth=2, markersize=6)
+
+    best = max(range(len(scores)), key=lambda i: scores[i])
+    axis.scatter([labels[best]], [scores[best]], s=140, zorder=3,
+                 facecolor="none", edgecolor="#a62942", linewidth=2)
+    axis.annotate(f"best: {scores[best]:.1f}%", (labels[best], scores[best]),
+                  textcoords="offset points", xytext=(0, 12),
+                  ha="center", fontsize=9, color="#a62942")
+
+    axis.set_xlabel(parameter_name)
+    axis.set_ylabel(f"{score_label} (%)")
+    axis.set_title(f"{score_label} against {parameter_name.lower()}")
+    axis.grid(alpha=0.25)
+    return encode_figure(figure)
+
+
+def create_confusion_matrix_plot(y_true, y_pred, labels):
+    """Where the best model's mistakes actually fall.
+
+    A single score says how often the model is wrong; this says what it confuses
+    with what, which is the part a user can act on.
+    """
+    matrix = confusion_matrix(y_true, y_pred, labels=labels)
+
+    figure, axis = plt.subplots(
+        figsize=(max(4.5, len(labels) * 1.1), max(3.8, len(labels) * 0.95))
+    )
+    image = axis.imshow(matrix, cmap="Blues")
+
+    axis.set_xticks(range(len(labels)), [str(label) for label in labels],
+                    rotation=35, ha="right")
+    axis.set_yticks(range(len(labels)), [str(label) for label in labels])
+    axis.set_xlabel("Predicted")
+    axis.set_ylabel("Actual")
+    axis.set_title("Confusion matrix, best configuration")
+
+    threshold = matrix.max() / 2 if matrix.max() else 0
+    for i in range(len(labels)):
+        for j in range(len(labels)):
+            axis.text(j, i, str(matrix[i, j]), ha="center", va="center",
+                      fontsize=9,
+                      color="white" if matrix[i, j] > threshold else "#233b3f")
+
+    figure.colorbar(image, ax=axis, shrink=0.8)
+    return encode_figure(figure)
+
+
 # -------------------------------------------------------------------
 # PREPROCESSING
 # -------------------------------------------------------------------
@@ -273,125 +340,125 @@ def create_preprocessor(X):
 # MODEL TRAINING AND HYPERPARAMETER SEARCH
 # -------------------------------------------------------------------
 
+# The models on offer, each with the single hyperparameter that is swept.
+# One axis per model keeps the comparison readable: the point of the sweep is to
+# show the user how a score moves with complexity, not to find the global best.
+MODEL_SPECS = {
+    "logistic": {
+        "label": "Logistic Regression",
+        "parameter_name": "C (inverse regularisation)",
+        "values": [0.01, 0.1, 1, 10, 100],
+        "build": lambda value: LogisticRegression(
+            C=value, max_iter=2000, random_state=42
+        ),
+    },
+    "tree": {
+        "label": "Decision Tree",
+        "parameter_name": "Maximum depth",
+        "values": [1, 2, 3, 4, 5, None],
+        "build": lambda value: DecisionTreeClassifier(
+            max_depth=value, random_state=42
+        ),
+    },
+    "knn": {
+        "label": "K-Nearest Neighbours",
+        "parameter_name": "Number of neighbours",
+        "values": [1, 3, 5, 7, 9],
+        "build": lambda value: KNeighborsClassifier(n_neighbors=value),
+    },
+}
+
+# The brief asks who chooses the score, so the user does. The three differ in
+# what they reward, and on an imbalanced dataset they disagree: accuracy can be
+# high while a minority class is never predicted, which is exactly when the
+# other two are worth having.
+SCORERS = {
+    "accuracy": {
+        "label": "Accuracy",
+        "hint": "Share of correct predictions. Misleading when classes are imbalanced.",
+        "score": accuracy_score,
+    },
+    "f1_macro": {
+        "label": "F1 (macro)",
+        "hint": "Averages F1 over classes, weighting each class equally regardless of size.",
+        "score": lambda y_true, y_pred: f1_score(
+            y_true, y_pred, average="macro", zero_division=0
+        ),
+    },
+    "balanced_accuracy": {
+        "label": "Balanced accuracy",
+        "hint": "Mean recall per class. Rewards getting rare classes right.",
+        "score": balanced_accuracy_score,
+    },
+}
+
+
 def evaluate_model_hyperparameters(
     model_name,
     X_train,
     X_test,
     y_train,
     y_test,
+    score_name="accuracy",
 ):
-    """Train the selected model using multiple hyperparameter values."""
-    results = []
+    """Train one model family across its hyperparameter values.
+
+    Returns the sweep, the best configuration, and the fitted best pipeline so
+    the caller can report a confusion matrix for it.
+    """
+    if model_name not in MODEL_SPECS:
+        raise ValueError("Unknown machine-learning model selected.")
+
+    if score_name not in SCORERS:
+        raise ValueError("Unknown score selected.")
+
+    spec = MODEL_SPECS[model_name]
+    scorer = SCORERS[score_name]["score"]
 
     preprocessor, numerical_columns, categorical_columns = (
         create_preprocessor(X_train)
     )
 
-    if model_name == "logistic":
-        parameter_name = "C"
-        parameter_values = [0.01, 0.1, 1, 10, 100]
+    values = spec["values"]
+    if model_name == "knn":
+        values = [value for value in values if value <= len(X_train)]
 
-        for value in parameter_values:
-            pipeline = Pipeline(
-                steps=[
-                    ("preprocessor", preprocessor),
-                    (
-                        "model",
-                        LogisticRegression(
-                            C=value,
-                            max_iter=2000,
-                            random_state=42,
-                        ),
-                    ),
-                ]
-            )
+    results = []
+    fitted = {}
 
-            pipeline.fit(X_train, y_train)
-            predictions = pipeline.predict(X_test)
-            accuracy = accuracy_score(y_test, predictions)
+    for value in values:
+        pipeline = Pipeline(
+            steps=[
+                ("preprocessor", preprocessor),
+                ("model", spec["build"](value)),
+            ]
+        )
+        pipeline.fit(X_train, y_train)
+        predictions = pipeline.predict(X_test)
 
-            results.append(
-                {
-                    "parameter": value,
-                    "accuracy": round(accuracy * 100, 2),
-                }
-            )
-
-    elif model_name == "tree":
-        parameter_name = "Maximum depth"
-        parameter_values = [1, 2, 3, 4, 5, None]
-
-        for value in parameter_values:
-            pipeline = Pipeline(
-                steps=[
-                    ("preprocessor", preprocessor),
-                    (
-                        "model",
-                        DecisionTreeClassifier(
-                            max_depth=value,
-                            random_state=42,
-                        ),
-                    ),
-                ]
-            )
-
-            pipeline.fit(X_train, y_train)
-            predictions = pipeline.predict(X_test)
-            accuracy = accuracy_score(y_test, predictions)
-
-            results.append(
-                {
-                    "parameter": "Unlimited" if value is None else value,
-                    "accuracy": round(accuracy * 100, 2),
-                }
-            )
-
-    elif model_name == "knn":
-        parameter_name = "Number of neighbours"
-        parameter_values = [1, 3, 5, 7, 9]
-        parameter_values = [
-            value
-            for value in parameter_values
-            if value <= len(X_train)
-        ]
-
-        for value in parameter_values:
-            pipeline = Pipeline(
-                steps=[
-                    ("preprocessor", preprocessor),
-                    (
-                        "model",
-                        KNeighborsClassifier(n_neighbors=value),
-                    ),
-                ]
-            )
-
-            pipeline.fit(X_train, y_train)
-            predictions = pipeline.predict(X_test)
-            accuracy = accuracy_score(y_test, predictions)
-
-            results.append(
-                {
-                    "parameter": value,
-                    "accuracy": round(accuracy * 100, 2),
-                }
-            )
-
-    else:
-        raise ValueError("Unknown machine-learning model selected.")
+        label = "Unlimited" if value is None else value
+        results.append(
+            {
+                "parameter": label,
+                "accuracy": round(scorer(y_test, predictions) * 100, 2),
+            }
+        )
+        fitted[label] = pipeline
 
     if not results:
         raise ValueError(
             "No valid hyperparameter configurations could be trained."
         )
 
-    best_result = max(results, key=lambda result: result["accuracy"])
+    best = max(results, key=lambda result: result["accuracy"])
+    best_pipeline = fitted[best["parameter"]]
 
     return {
-        "parameter_name": parameter_name,
+        "parameter_name": spec["parameter_name"],
         "results": results,
-        "best_parameter": best_result["parameter"],
-        "best_accuracy": best_result["accuracy"],
+        "best_parameter": best["parameter"],
+        "best_accuracy": best["accuracy"],
+        "best_pipeline": best_pipeline,
         "numerical_columns": numerical_columns,
         "categorical_columns": categorical_columns,
     }
@@ -404,6 +471,11 @@ def evaluate_model_hyperparameters(
 def index(request):
     context = {
         "title": "Project 1 — Supervised Learning Interface",
+        "scorers": [
+            {"name": name, "label": spec["label"], "hint": spec["hint"]}
+            for name, spec in SCORERS.items()
+        ],
+        "selected_score": request.POST.get("score_name", "accuracy"),
     }
 
     # Clear the saved dataset and start a fresh session state.
@@ -621,21 +693,35 @@ def index(request):
                 stratify=stratify_value,
             )
 
+            score_name = request.POST.get("score_name", "accuracy")
+            if score_name not in SCORERS:
+                score_name = "accuracy"
+
             evaluation = evaluate_model_hyperparameters(
                 model_name=model_name,
                 X_train=X_train,
                 X_test=X_test,
                 y_train=y_train,
                 y_test=y_test,
+                score_name=score_name,
             )
 
-            model_display_names = {
-                "logistic": "Logistic Regression",
-                "tree": "Decision Tree",
-                "knn": "K-Nearest Neighbours",
-            }
+            best_pipeline = evaluation["best_pipeline"]
+            class_labels = sorted(y.unique().tolist(), key=str)
 
-            context["selected_model"] = model_display_names[model_name]
+            context["score_name"] = score_name
+            context["score_label"] = SCORERS[score_name]["label"]
+            context["score_hint"] = SCORERS[score_name]["hint"]
+            context["sweep_plot"] = create_sweep_plot(
+                evaluation["results"],
+                evaluation["parameter_name"],
+                SCORERS[score_name]["label"],
+            )
+            context["confusion_plot"] = create_confusion_matrix_plot(
+                y_test, best_pipeline.predict(X_test), class_labels
+            )
+
+            context["selected_model"] = MODEL_SPECS[model_name]["label"]
             context["selected_model_value"] = model_name
             context["selected_target"] = target
             context["selected_test_size"] = str(test_size)

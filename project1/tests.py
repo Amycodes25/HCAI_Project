@@ -209,6 +209,54 @@ class Training(Project1Base):
             self.assertGreaterEqual(row["accuracy"], 0)
             self.assertLessEqual(row["accuracy"], 100)
 
+    def test_each_score_can_be_selected(self):
+        self.upload()
+        for score in ("accuracy", "f1_macro", "balanced_accuracy"):
+            with self.subTest(score=score):
+                response = self.client.post(self.url, {
+                    "action": "train", "target": "Species",
+                    "model_name": "tree", "test_size": "0.3",
+                    "score_name": score,
+                })
+                self.assertIsNone(self.error_in(response))
+                self.assertEqual(response.context["score_name"], score)
+
+    def test_unknown_score_falls_back_rather_than_failing(self):
+        self.upload()
+        response = self.client.post(self.url, {
+            "action": "train", "target": "Species", "model_name": "tree",
+            "test_size": "0.3", "score_name": "nonsense",
+        })
+        self.assertIsNone(self.error_in(response))
+        self.assertEqual(response.context["score_name"], "accuracy")
+
+    def test_scores_disagree_on_an_imbalanced_target(self):
+        """The reason the choice is offered at all."""
+        # The rare class sits on top of the common one, so a classifier that
+        # never predicts it still scores well on accuracy. That is exactly the
+        # situation where balanced accuracy earns its place.
+        lines = ["a,b,label"]
+        lines += [f"{1 + i * 0.01},{2 + i * 0.01},common" for i in range(20)]
+        lines += [f"{1 + i * 0.01},{2 + i * 0.01},rare" for i in range(4)]
+        self.upload(("\n".join(lines) + "\n").encode())
+
+        accuracy = self.client.post(self.url, {
+            "action": "train", "target": "label", "model_name": "logistic",
+            "test_size": "0.5", "score_name": "accuracy",
+        }).context["best_accuracy"]
+        balanced = self.client.post(self.url, {
+            "action": "train", "target": "label", "model_name": "logistic",
+            "test_size": "0.5", "score_name": "balanced_accuracy",
+        }).context["best_accuracy"]
+
+        self.assertNotEqual(accuracy, balanced)
+
+    def test_results_include_a_sweep_plot_and_confusion_matrix(self):
+        self.upload()
+        response = self.train()
+        self.assertTrue(response.context["sweep_plot"])
+        self.assertTrue(response.context["confusion_plot"])
+
     def test_training_before_upload_is_refused(self):
         response = self.train()
         self.assertIsNotNone(self.error_in(response))

@@ -329,7 +329,26 @@
                         </select>
                     </div>
 
-                    <div class="form-group">
+                                    <div class="form-group">
+                    <label for="score_name">Score</label>
+
+                    <select id="score_name" name="score_name">
+                        {% for scorer in scorers %}
+                            <option value="{{ scorer.name }}"
+                                {% if selected_score == scorer.name %}selected{% endif %}>
+                                {{ scorer.label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+
+                    <p class="helper-text">
+                        {% for scorer in scorers %}
+                            {% if selected_score == scorer.name %}{{ scorer.hint }}{% endif %}
+                        {% endfor %}
+                    </p>
+                </div>
+
+                <div class="form-group">
                         <label for="test_size">Testing data</label>
 
                         <select id="test_size" name="test_size">
@@ -476,6 +495,40 @@
                     </tbody>
                 </table>
             </div>
+
+            {% if sweep_plot %}
+                <div class="plot-wrapper">
+                    <img src="data:image/png;base64,{{ sweep_plot }}"
+                         alt="{{ score_label }} against the swept hyperparameter">
+                </div>
+            {% endif %}
+
+            {% if confusion_plot %}
+                <div class="plot-wrapper">
+                    <img src="data:image/png;base64,{{ confusion_plot }}"
+                         alt="Confusion matrix for the best configuration">
+                </div>
+            {% endif %}
+
+            <div class="control-split">
+                <h3>What you chose, and what we chose for you</h3>
+                <p class="card-subtitle">
+                    The brief asks who should be in control of each step. This is
+                    where that line was drawn, and why.
+                </p>
+                <dl class="control-list">
+                    <div><dt>Dataset</dt><dd class="you">You</dd><dd>Any CSV, with the label in the last column.</dd></div>
+                    <div><dt>Target column</dt><dd class="you">You</dd><dd>Suggested from the column name, but yours to override.</dd></div>
+                    <div><dt>Train/test split</dt><dd class="you">You</dd><dd>The trade-off between fitting and measuring is a judgement, not a default.</dd></div>
+                    <div><dt>Model family</dt><dd class="you">You</dd><dd>The families differ in what they can express and how readable they are.</dd></div>
+                    <div><dt>Score</dt><dd class="you">You</dd><dd>Accuracy and F1 disagree on imbalanced data, and only you know which mistake costs more.</dd></div>
+                    <div><dt>Hyperparameter range</dt><dd class="us">Us</dd><dd>Fixed per family. Choosing a range well needs knowledge of the model that the interface should not demand.</dd></div>
+                    <div><dt>Preprocessing</dt><dd class="us">Us</dd><dd>Median imputation, scaling, one-hot encoding. Mechanical given the column types.</dd></div>
+                    <div><dt>Identifier columns</dt><dd class="us">Us</dd><dd>Detected and dropped, then listed above so the decision stays visible.</dd></div>
+                    <div><dt>Problem type</dt><dd class="us">Us</dd><dd>Classification only. Regression is not supported, and the app says so rather than guessing.</dd></div>
+                </dl>
+            </div>
+
 
             <p class="helper-text" style="margin-top: 18px;">
                 Used features:
