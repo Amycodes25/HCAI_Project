@@ -1,0 +1,99 @@
+{
+  "n_participants": 250,
+  "beta": 3.0,
+  "held_out_trials": 40,
+  "seconds_pairwise": 6.0,
+  "seconds_ranking": 45.0,
+  "n_features": 22,
+  "n_movies": 4224,
+  "budgets": [
+    {
+      "minutes": 2,
+      "pairwise_trials": 20,
+      "ranking_trials": 2,
+      "pairwise_mean": 0.7001,
+      "pairwise_sd": 0.09217633049549356,
+      "ranking_mean": 0.709,
+      "ranking_sd": 0.0918025644705718,
+      "ceiling": 0.8049999999999999,
+      "difference": 0.008900000000000002,
+      "dz": 0.08589423248655444,
+      "n_required": 1066
+    },
+    {
+      "minutes": 4,
+      "pairwise_trials": 40,
+      "ranking_trials": 5,
+      "pairwise_mean": 0.7279000000000001,
+      "pairwise_sd": 0.08108878816621358,
+      "ranking_mean": 0.748,
+      "ranking_sd": 0.08171726159982047,
+      "ceiling": 0.7962,
+      "difference": 0.0201,
+      "dz": 0.21928159216628787,
+      "n_required": 166
+    },
+    {
+      "minutes": 6,
+      "pairwise_trials": 60,
+      "ranking_trials": 8,
+      "pairwise_mean": 0.7352000000000001,
+      "pairwise_sd": 0.08314814765123349,
+      "ranking_mean": 0.7696999999999999,
+      "ranking_sd": 0.07571221405711048,
+      "ceiling": 0.8060999999999999,
+      "difference": 0.0345,
+      "dz": 0.42847448337437616,
+      "n_required": 45
+    },
+    {
+      "minutes": 8,
+      "pairwise_trials": 80,
+      "ranking_trials": 10,
+      "pairwise_mean": 0.7495999999999999,
+      "pairwise_sd": 0.08090750333798184,
+      "ranking_mean": 0.7677,
+      "ranking_sd": 0.0750783392738042,
+      "ceiling": 0.7957000000000001,
+      "difference": 0.018099999999999998,
+      "dz": 0.2506225047755661,
+      "n_required": 127
+    }
+  ],
+  "sensitivity": {
+    "minutes": 6,
+    "n_participants": 125,
+    "rows": [
+      {
+        "seconds_ranking": 25.0,
+        "ranking_trials": 14,
+        "difference": 0.038400000000000004,
+        "favours_ranking": true
+      },
+      {
+        "seconds_ranking": 35.0,
+        "ranking_trials": 10,
+        "difference": 0.030400000000000003,
+        "favours_ranking": true
+      },
+      {
+        "seconds_ranking": 45.0,
+        "ranking_trials": 8,
+        "difference": 0.022,
+        "favours_ranking": true
+      },
+      {
+        "seconds_ranking": 60.0,
+        "ranking_trials": 6,
+        "difference": 0.025200000000000004,
+        "favours_ranking": true
+      },
+      {
+        "seconds_ranking": 90.0,
+        "ranking_trials": 4,
+        "difference": -0.00019999999999999662,
+        "favours_ranking": false
+      }
+    ]
+  }
+}

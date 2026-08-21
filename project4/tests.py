@@ -10,7 +10,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from . import views
-from .ml import features, preference
+from .ml import features, pilot, preference
 from .models import StudySession
 
 
@@ -142,6 +142,67 @@ class PreferenceModel(TestCase):
             + preference.pairwise_probability(xj, xi, w),
             1.0, places=12,
         )
+
+
+class Pilot(TestCase):
+    """The simulated pilot and the power analysis it supports."""
+
+    def test_beta_is_read_at_call_time(self):
+        """A default argument would bind once at import and ignore overrides."""
+        import numpy as np
+        X = features.design_matrix()[:6]
+        w = np.ones(features.n_features())
+        rng = np.random.default_rng(0)
+        decisive = pilot._sample_ranking(X, w, rng, beta=50.0)
+        self.assertEqual(len(decisive), len(X))
+
+    def test_noise_level_changes_the_ceiling(self):
+        """A noisier participant is harder for even their own w to predict."""
+        import numpy as np
+        X = features.design_matrix()
+        rng = np.random.default_rng(1)
+        w = rng.normal(size=features.n_features())
+        w /= np.linalg.norm(w)
+
+        original = pilot.BETA
+        try:
+            pilot.BETA = 0.5
+            noisy = pilot._agreement(pilot._held_out(X, w, rng, n=80), w)
+            pilot.BETA = 12.0
+            decisive = pilot._agreement(pilot._held_out(X, w, rng, n=80), w)
+        finally:
+            pilot.BETA = original
+
+        self.assertGreater(decisive, noisy)
+
+    def test_required_sample_size_falls_as_the_effect_grows(self):
+        import numpy as np
+        small = pilot.required_sample_size(np.full(50, 0.02) + np.linspace(-0.1, 0.1, 50))
+        large = pilot.required_sample_size(np.full(50, 0.20) + np.linspace(-0.1, 0.1, 50))
+        self.assertGreater(small["n"], large["n"])
+
+    def test_required_sample_size_reports_no_n_when_there_is_no_effect(self):
+        import numpy as np
+        rng = np.random.default_rng(0)
+        result = pilot.required_sample_size(rng.normal(0, 0.1, 200))
+        self.assertTrue(result["n"] is None or result["n"] > 100)
+
+    def test_cached_results_are_well_formed(self):
+        cached = pilot.cached()
+        if cached is None:
+            self.skipTest("pilot artifact not built; run manage.py run_project4_pilot")
+        self.assertGreater(cached["n_participants"], 0)
+        for row in cached["budgets"]:
+            self.assertLessEqual(row["pairwise_mean"], row["ceiling"] + 0.15)
+            self.assertLessEqual(row["ranking_mean"], row["ceiling"] + 0.15)
+            self.assertGreaterEqual(row["pairwise_mean"], 0.4)
+
+    def test_study_design_page_reports_the_pilot(self):
+        response = self.client.get(reverse("project4:study_design"))
+        self.assertEqual(response.status_code, 200)
+        if pilot.cached():
+            self.assertContains(response, "Pilot on simulated participants")
+            self.assertContains(response, "80% power")
 
 
 class ProjectPages(TestCase):

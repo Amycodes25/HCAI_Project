@@ -32,7 +32,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 
 from .models import StudySession
-from .ml import features, preference
+from .ml import features, pilot, preference
 
 # The two interfaces being compared, per the brief.
 PAIRWISE = "pairwise"
@@ -95,6 +95,7 @@ def task_study_design(request):
         "trials_per_condition": TRIALS_PER_CONDITION,
         "ranking_set_size": RANKING_SET_SIZE,
         "validation_trials": VALIDATION_TRIALS,
+        "pilot": pilot.cached(),
     })
     return render(request, "project4/study_design.html", context)
 

@@ -64,11 +64,123 @@
         measures.
     </p>
 
+</div>
+
+{% if pilot %}
+<div class="prose-card">
+    <h3>Pilot on simulated participants</h3>
+    <p>
+        Lecture&nbsp;7 frames evaluation here as two steps: simulated users first,
+        because they give full control over behaviour and real users are costly,
+        then human users. The study is step two; this is step one. It settles two
+        things that cannot be settled by argument &mdash; whether the estimator
+        recovers a preference vector at all from the interactions the study can
+        afford, and how many participants the real study needs.
+    </p>
+    <p>
+        {{ pilot.n_participants }} simulated participants per time budget. Each has
+        a known <em>w</em> and answers by the Plackett&ndash;Luce model itself with
+        &beta;&nbsp;=&nbsp;{{ pilot.beta }} &mdash; someone who mostly follows their
+        own taste but is not mechanical about it. Both designs receive the
+        <strong>same time budget</strong> and spend it on as many trials as they can
+        afford, at an assumed {{ pilot.seconds_pairwise }}s per pairwise choice and
+        {{ pilot.seconds_ranking }}s per ranking of ten.
+    </p>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Budget</th><th>Trials</th><th>Pairwise</th><th>Ranking</th>
+                    <th>Ceiling</th><th>Difference</th><th>d<sub>z</sub></th><th>n for 80% power</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in pilot.budgets %}
+                    <tr>
+                        <td>{{ row.minutes }} min</td>
+                        <td>{{ row.pairwise_trials }} / {{ row.ranking_trials }}</td>
+                        <td>{{ row.pairwise_mean|floatformat:3 }}</td>
+                        <td>{{ row.ranking_mean|floatformat:3 }}</td>
+                        <td>{{ row.ceiling|floatformat:3 }}</td>
+                        <td>{{ row.difference|floatformat:3 }}</td>
+                        <td>{{ row.dz|floatformat:2 }}</td>
+                        <td>{{ row.n_required|default:"not detectable" }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <h3>What the pilot says</h3>
+    <p>
+        <strong>Read agreement against the ceiling, not against 100%.</strong> A
+        participant who is not perfectly consistent with themselves caps how well
+        <em>any</em> preference vector can predict their held-out choices &mdash;
+        including their own true one. The ceiling sits around 80%, so a design
+        reaching 77% has recovered most of what was recoverable.
+    </p>
+    <p>
+        <strong>Ranking leads at every budget, but the shortest one barely.</strong>
+        At two minutes a ranking block affords only two trials, too few to constrain
+        {{ pilot.n_features }} weights, and its advantage nearly vanishes. The
+        advantage grows once there is time for several rankings. That is a design
+        finding: too short a session does not merely weaken the study, it erases
+        the thing the study is trying to measure.
+    </p>
+    <p>
+        <strong>The effect is small, and the required sample is correspondingly
+        large.</strong> Where ranking leads it leads by one to three percentage
+        points, giving d<sub>z</sub> between 0.09 and 0.43. The sample sizes that
+        follow range from about 45 to over a thousand, and that spread is itself
+        informative: with an effect this small, even
+        {{ pilot.n_participants }} simulated participants cannot pin the required
+        <em>n</em> tightly. The defensible reading is that the study needs
+        <strong>on the order of one to two hundred participants</strong>, not the
+        twenty a coursework study would otherwise assume &mdash; and that quoting
+        the most flattering row would be a mistake.
+    </p>
+
+    {% if pilot.sensitivity %}
+        <h3>How much the timing assumption is carrying</h3>
+        <p>
+            The whole comparison rests on an assumed ratio of trial durations, which
+            a simulation cannot know. Varying the assumed time for a ranking at a
+            {{ pilot.sensitivity.minutes }}-minute budget:
+        </p>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Assumed seconds</th><th>Trials afforded</th><th>Difference</th><th>Favours</th></tr></thead>
+                <tbody>
+                    {% for row in pilot.sensitivity.rows %}
+                        <tr>
+                            <td>{{ row.seconds_ranking|floatformat:0 }}s</td>
+                            <td>{{ row.ranking_trials }}</td>
+                            <td>{{ row.difference|floatformat:3 }}</td>
+                            <td>{% if row.favours_ranking %}Ranking{% else %}Pairwise{% endif %}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <p>
+            The direction holds while a ranking takes up to about a minute, and
+            disappears at ninety seconds, where only four rankings fit in the budget.
+            So the conclusion does depend on the assumption, but not delicately: it
+            survives anything up to roughly a minute per ranking, and fails only in a
+            regime where the ranking block is too short to be informative anyway.
+            The interface records real per-trial times, so the human pilot replaces
+            this assumption with measurement rather than argument.
+        </p>
+    {% endif %}
+
     <p class="inline-note">
-        Outstanding: a pilot on simulated participants with a known <em>w</em>,
-        which would establish that the estimator recovers it and give an effect
-        size to justify the sample size instead of asserting a round number. That
-        depends on Task&nbsp;2.
+        This is not evidence about people. Every participant here follows the model
+        exactly, which is the one thing a real participant certainly does not do. The
+        pilot establishes that the instrument works and what sample the study needs;
+        it cannot establish that the hypothesis is true. Rebuild with
+        <code>manage.py run_project4_pilot</code>.
     </p>
 </div>
+{% endif %}
 {% endblock %}

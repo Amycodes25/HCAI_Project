@@ -69,6 +69,7 @@ runtime. Every dataset and model it needs is committed.
 | Command | Rebuilds | Needs |
 |---------|----------|-------|
 | `manage.py build_project2` | Project 2's 69 fitted models | runtime only |
+| `manage.py run_project4_pilot` | Project 4's simulated pilot | runtime only |
 | `manage.py build_project4_report` | Project 4's report PDF | `reportlab` |
 | `learning_to_defer/services/*.py` | Project 3's artifacts | `datasets` |
 

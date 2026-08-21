@@ -21,7 +21,7 @@ from reportlab.platypus import (ListFlowable, ListItem, PageBreak, Paragraph,
                                 SimpleDocTemplate, Spacer, Table, TableStyle)
 from reportlab.lib import colors
 
-from project4.ml import features, preference
+from project4.ml import features, pilot, preference
 
 OUTPUT = Path(__file__).resolve().parents[2] / "static" / "project4" / "report.pdf"
 
@@ -350,6 +350,89 @@ class Command(BaseCommand):
                 "with a correction for multiple comparisons, since testing several outcomes at "
                 "&alpha; = 0.05 without one would make a spurious result likely.", s["body"]),
 
+        ]
+
+        cached = pilot.cached()
+        if cached:
+            story += [
+                PageBreak(),
+                Paragraph("4 &nbsp; Pilot on simulated participants", s["h1"]),
+                Paragraph(
+                    "Lecture 7 frames evaluation in this field as two steps: simulated users "
+                    "first, because they give full control over behaviour and real users are "
+                    "costly, then human users. The study above is step two. This is step one, "
+                    "and it settles two things argument cannot: whether the estimator recovers a "
+                    "preference vector at all from the interactions the study can afford, and how "
+                    "many participants the real study needs.", s["body"]),
+                Paragraph(
+                    f"{cached['n_participants']} simulated participants per time budget, each "
+                    f"with a known w, answering by the Plackett-Luce model itself with beta = "
+                    f"{cached['beta']} -- someone who mostly follows their own taste without being "
+                    f"mechanical. Both designs receive the same time budget and spend it on as "
+                    f"many trials as they can afford, at an assumed "
+                    f"{cached['seconds_pairwise']:.0f}s per pairwise choice and "
+                    f"{cached['seconds_ranking']:.0f}s per ranking of ten.", s["body"]),
+                Table(
+                    [["Budget", "Trials", "Pairwise", "Ranking", "Ceiling", "Diff", "dz", "n"]]
+                    + [[f"{b['minutes']} min",
+                        f"{b['pairwise_trials']}/{b['ranking_trials']}",
+                        f"{b['pairwise_mean']:.1%}", f"{b['ranking_mean']:.1%}",
+                        f"{b['ceiling']:.1%}", f"{b['difference']:+.1%}",
+                        f"{b['dz']:+.2f}", str(b["n_required"] or "-")]
+                       for b in cached["budgets"]],
+                    hAlign="LEFT",
+                    style=TableStyle([
+                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                        ("FONTSIZE", (0, 0), (-1, -1), 8.5),
+                        ("TEXTCOLOR", (0, 0), (-1, 0), ACCENT),
+                        ("TEXTCOLOR", (0, 1), (-1, -1), INK),
+                        ("LINEBELOW", (0, 0), (-1, 0), 0.6, LINE),
+                        ("LINEBELOW", (0, 1), (-1, -2), 0.3, LINE),
+                        ("TOPPADDING", (0, 0), (-1, -1), 5),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+                        ("LEFTPADDING", (0, 0), (0, -1), 0),
+                    ])),
+                Spacer(1, 10),
+                Paragraph("4.1 &nbsp; Reading the result", s["h2"]),
+                Paragraph(
+                    "Agreement has to be read against the ceiling rather than against 100%. A "
+                    "participant who is not perfectly consistent with themselves caps how well any "
+                    "preference vector can predict their held-out choices, including their own "
+                    "true one; that ceiling sits near 80%, so a design reaching 77% has recovered "
+                    "most of what was recoverable.", s["body"]),
+                Paragraph(
+                    "Ranking leads at every budget, but only barely at the shortest. At two "
+                    "minutes a ranking block affords two trials, too few to constrain "
+                    f"{cached['n_features']} weights, and the advantage nearly vanishes. This is a "
+                    "design finding in its own right: too short a session does not merely weaken "
+                    "the study, it erases the effect it is trying to measure.", s["body"]),
+                Paragraph(
+                    "The effect is small. Where ranking leads it leads by one to three percentage "
+                    "points, and the sample sizes that follow range from about 45 to over a "
+                    "thousand. That spread is itself informative: with an effect this small, even "
+                    f"{cached['n_participants']} simulated participants cannot pin the required n "
+                    "tightly. The defensible reading is that the study needs on the order of one "
+                    "to two hundred participants rather than the twenty a coursework study would "
+                    "otherwise assume, and that quoting the most flattering row would be a "
+                    "mistake.", s["body"]),
+                Paragraph("4.2 &nbsp; What the timing assumption is carrying", s["h2"]),
+                Paragraph(
+                    "The comparison is normalised by time, and a simulation cannot know how long "
+                    "a trial takes, so the durations are assumptions. Varying the assumed time "
+                    "for a ranking shows the direction holds while a ranking takes up to about a "
+                    "minute and disappears at ninety seconds, where only four rankings fit the "
+                    "budget. The conclusion therefore depends on the assumption, but not "
+                    "delicately: it fails only in a regime where the ranking block is too short "
+                    "to be informative anyway. The interface records real per-trial times, so a "
+                    "human pilot replaces this assumption with measurement.", s["body"]),
+                Paragraph(
+                    "None of this is evidence about people. Every participant here follows the "
+                    "model exactly, which is the one thing a real participant certainly does not "
+                    "do. The pilot establishes that the instrument works and what sample the "
+                    "study needs; it cannot establish that the hypothesis is true.", s["small"]),
+            ]
+
+        story += [
             Spacer(1, 14),
             Paragraph(
                 "The interface described in section 3 is implemented and reachable from the "
