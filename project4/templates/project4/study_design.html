@@ -22,6 +22,56 @@
         is the central decision in this design.
     </p>
 
+    <h3>Hypothesis</h3>
+    <p>
+        <strong>H1.</strong> For a fixed amount of participant time, ranking ten
+        films yields a more accurate estimate of <em>w</em> than repeated
+        pairwise choices.<br>
+        <strong>H0.</strong> There is no difference in accuracy per unit of
+        participant time.
+    </p>
+    <p>
+        A secondary hypothesis concerns cost rather than accuracy: ranking ten
+        films is expected to impose greater perceived effort per trial than
+        choosing between two, which is why effort is asked about directly at the
+        end rather than inferred from the timings.
+    </p>
+
+    <h3>Participants and recruitment</h3>
+    <ul>
+        <li>Any adult who watches films. No domain expertise is needed, because
+        the task asks about personal taste rather than knowledge &mdash; which
+        also keeps the recruitment pool wide.</li>
+        <li>Recruited through university mailing lists and noticeboards, with the
+        study run online so people take part at a time that suits them.</li>
+        <li>Compensated for their time. Asking for unpaid participation is both an
+        ethical problem and a source of self-selection bias, since the people who
+        volunteer for free are not a random sample.</li>
+        <li>Sample size taken from the pilot below rather than asserted.</li>
+    </ul>
+
+    <h3>Procedure, step by step</h3>
+    <p>
+        This is what would actually happen, in order. Every step below exists in
+        the implemented interface.
+    </p>
+    <ol>
+        <li><strong>Informed consent.</strong> Nothing is recorded until it is given, and the study cannot be started without it.</li>
+        <li><strong>Instructions</strong> for the first interface, followed by practice trials so the first real trial is not also the first attempt.</li>
+        <li><strong>Block one:</strong> {{ trials_per_condition }} trials in the assigned first interface.</li>
+        <li><strong>A break,</strong> then instructions and practice for the second interface.</li>
+        <li><strong>Block two:</strong> {{ trials_per_condition }} trials in the other interface.</li>
+        <li><strong>Validation:</strong> {{ validation_trials }} further pairwise choices, never used to fit <em>w</em>.</li>
+        <li><strong>Questionnaire:</strong> perceived effort per interface, and which felt like a better way to describe their taste.</li>
+        <li><strong>Debrief:</strong> what was being compared, and the identifier needed to request erasure.</li>
+    </ol>
+    <p>
+        Before any of this runs for real, the study is piloted with five to ten
+        participants, in person where possible so that hesitation and confusion
+        can be observed rather than guessed at. Pilot data is excluded from the
+        final analysis.
+    </p>
+
     <h3>Design at a glance</h3>
     <div class="table-wrap">
         <table>
