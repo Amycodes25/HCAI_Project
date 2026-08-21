@@ -27,6 +27,7 @@ than showing a placeholder number that might be mistaken for a result.
 
 import uuid
 
+import numpy as np
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
@@ -62,18 +63,21 @@ def overview(request):
 
 
 def task_features(request):
+    names = features.feature_names()
     context = _project_context("features")
     context.update({
         "n_movies": features.movie_count(),
-        "feature_names": features.FEATURE_NAMES,
-        "is_implemented": features.IS_IMPLEMENTED,
+        "n_features": features.n_features(),
+        "genres": features.genre_summary(),
+        "other_features": names[features.N_GENRES:],
     })
     return render(request, "project4/features.html", context)
 
 
 def task_preference_model(request):
     context = _project_context("preference_model")
-    context["is_implemented"] = preference.IS_IMPLEMENTED
+    context["alpha"] = preference.DEFAULT_ALPHA
+    context["n_features"] = features.n_features()
     return render(request, "project4/preference_model.html", context)
 
 
@@ -149,6 +153,9 @@ def study_instructions(request):
     if not state:
         return redirect("project4:study_consent")
 
+    if state["stage"] >= len(state["order"]):
+        return redirect("project4:study_questionnaire")
+
     if request.method == "POST":
         return redirect("project4:study_task")
 
@@ -163,18 +170,58 @@ def study_instructions(request):
     })
 
 
+def _read_ordering(request, design):
+    """The films this trial produced, best first, as dataset indices.
+
+    Reconstructed from ordinary form fields rather than a value assembled in
+    the browser, so the trial behaves identically with JavaScript disabled.
+    """
+    shown = [
+        int(value) for value in request.POST.get("shown", "").split(",") if value.strip()
+    ]
+
+    if design == PAIRWISE:
+        try:
+            chosen = int(request.POST.get("chosen", ""))
+        except (TypeError, ValueError):
+            return []
+        if chosen not in shown:
+            return []
+        # A choice between two films is a ranking of length two.
+        return [chosen] + [index for index in shown if index != chosen]
+
+    positions = []
+    for index in shown:
+        try:
+            positions.append((int(request.POST.get(f"pos_{index}", "")), index))
+        except (TypeError, ValueError):
+            return []
+
+    # Positions come from number inputs, so a participant can leave two films
+    # on the same number. Sorting is stable, so ties keep their display order
+    # rather than being discarded.
+    return [index for _, index in sorted(positions, key=lambda pair: pair[0])]
+
+
 def study_task(request):
     state = _session(request)
     if not state:
         return redirect("project4:study_consent")
 
+    # Reaching this page after the last block -- by refreshing, or by going
+    # back -- must move the participant on rather than fall off the end of the
+    # condition list.
+    if state["stage"] >= len(state["order"]):
+        return redirect("project4:study_questionnaire")
+
     design = state["order"][state["stage"]]
 
     if request.method == "POST":
+        ordering = _read_ordering(request, design)
         state["responses"].append({
             "design": design,
             "trial": state["trial"],
-            "answer": request.POST.get("answer", ""),
+            "ordering": ordering,
             # Response time is measured in the page and posted back; it is one
             # of the study's primary measures, so it is recorded per trial.
             "milliseconds": request.POST.get("elapsed_ms", ""),
@@ -228,11 +275,40 @@ def study_debrief(request):
     if not state:
         return redirect("project4:study_consent")
 
-    StudySession.objects.filter(participant=state.get("participant")).update(completed=True)
+    responses = state.get("responses", [])
+
+    # The purpose of the elicitation is to estimate w, so it is estimated here,
+    # from every response the participant gave. Both interfaces feed the same
+    # estimator: a pairwise choice is a ranking of length two.
+    rankings = [
+        features.movie_rows(response["ordering"])
+        for response in responses
+        if len(response.get("ordering", [])) >= 2
+    ]
+    w = preference.fit(rankings, features.n_features())
+
+    top = []
+    if rankings:
+        X = features.design_matrix()
+        for index in preference.rank_items(X, w)[:5]:
+            top.append(features.describe(int(index)))
+
+    weights = sorted(
+        zip(features.feature_names(), w),
+        key=lambda pair: abs(pair[1]),
+        reverse=True,
+    )[:6]
+
+    StudySession.objects.filter(participant=state.get("participant")).update(
+        completed=True, estimated_w=[float(value) for value in w]
+    )
 
     context = {
         "participant": state.get("participant"),
-        "responses": len(state.get("responses", [])),
+        "responses": len(responses),
+        "recommendations": top,
+        "n_movies": features.movie_count(),
+        "weights": [(name, f"{value:+.2f}") for name, value in weights],
         "report_url": reverse("project4:index"),
     }
     # The session is the only place anything was kept, and the study is over.

@@ -55,11 +55,28 @@
         can use as an outcome in its own right.
     </p>
 
-    {% if not is_implemented %}
-        <p class="inline-note">
-            Not implemented yet. Responses are recorded during the study but no
-            preference vector is estimated from them.
-        </p>
-    {% endif %}
+    <h3>Implementation</h3>
+    <p>
+        <code>project4/ml/preference.py</code> carries the log-likelihood, its
+        analytic gradient, and the fit. Both interfaces feed the same estimator,
+        since a pairwise choice is a ranking of length two &mdash; which is what
+        makes their results comparable at all.
+    </p>
+    <p>
+        The log-likelihood is concave in <em>w</em>, and is maximised under a
+        Gaussian prior (&alpha;&nbsp;=&nbsp;{{ alpha }}). The prior is not
+        decoration: with roughly ten interactions and {{ n_features }} features
+        the unpenalised maximum is not unique, because any direction the shown
+        films do not distinguish is unconstrained and the optimiser will run off
+        along it. The penalty holds those directions at zero, which is the
+        honest statement that the data said nothing about them.
+    </p>
+    <p class="inline-note">
+        Two checks, both run against the implementation: at
+        <em>n</em>&nbsp;=&nbsp;2 the Plackett&ndash;Luce probability equals the
+        Bradley&ndash;Terry probability to 10<sup>&minus;12</sup>, and the
+        analytic gradient agrees with central differences to
+        10<sup>&minus;8</sup>.
+    </p>
 </div>
 {% endblock %}

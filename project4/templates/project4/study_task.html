@@ -9,17 +9,23 @@
 
 <form method="post" id="trial-form">
     {% csrf_token %}
-    <input type="hidden" name="answer" id="answer">
+    {% comment %}
+    The ordering is reconstructed on the server from ordinary form fields, so
+    the trial works with JavaScript disabled: the pairwise buttons submit which
+    film was chosen, and the ranking submits a position per film. The script
+    only adds drag-to-reorder and the response timing.
+    {% endcomment %}
+    <input type="hidden" name="shown" value="{% for movie in movies %}{{ movie.index }}{% if not forloop.last %},{% endif %}{% endfor %}">
     <input type="hidden" name="elapsed_ms" id="elapsed_ms">
 
     {% if design == 'pairwise' %}
         <h1 class="study-question">Which would you rather watch?</h1>
         <div class="choice-pair">
             {% for movie in movies %}
-                <button class="movie-choice" type="submit" value="{{ movie.title }}"
-                        data-answer="{{ movie.title }}">
+                <button class="movie-choice" type="submit" name="chosen" value="{{ movie.index }}"
+                        data-index="{{ movie.index }}">
                     <span class="movie-title">{{ movie.title }}</span>
-                    <span class="movie-meta">{{ movie.year }} &middot; {{ movie.duration_min }} min</span>
+                    <span class="movie-meta">{{ movie.year }} &middot; {{ movie.duration }} min &middot; {{ movie.rating }}</span>
                     <span class="movie-genres">{{ movie.genres }}</span>
                     <span class="movie-director">{{ movie.director }}</span>
                 </button>
@@ -34,7 +40,7 @@
         </p>
         <ol class="rank-list" id="rank-list">
             {% for movie in movies %}
-                <li class="rank-item" draggable="true" data-title="{{ movie.title }}">
+                <li class="rank-item" draggable="true" data-index="{{ movie.index }}">
                     <span class="rank-handle" aria-hidden="true">&#8942;&#8942;</span>
                     <span class="rank-position">{{ forloop.counter }}</span>
                     <span class="rank-body">
@@ -44,7 +50,7 @@
                     <label class="rank-number">
                         <span class="visually-hidden">Position for {{ movie.title }}</span>
                         <input type="number" min="1" max="{{ movies|length }}"
-                               value="{{ forloop.counter }}" data-title="{{ movie.title }}">
+                               name="pos_{{ movie.index }}" value="{{ forloop.counter }}">
                     </label>
                 </li>
             {% endfor %}

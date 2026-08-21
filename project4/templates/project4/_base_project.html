@@ -25,15 +25,6 @@
             </div>
         </div>
 
-        {% if not ml_ready %}
-            <div class="status-banner" role="status">
-                <strong>Work in progress.</strong>
-                The interface and the study protocol are in place. The feature
-                representation (Task&nbsp;1) and the preference model (Task&nbsp;2)
-                are not implemented yet, so no preference vector is estimated and
-                the films below are drawn from a small sample file.
-            </div>
-        {% endif %}
 
         {% block main %}{% endblock %}
     </main>

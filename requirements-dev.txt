@@ -7,3 +7,7 @@
 -r requirements.txt
 
 datasets>=2.18,<4.0
+
+# Only needed to regenerate the Project 4 report PDF
+# (manage.py build_project4_report).
+reportlab>=4.0

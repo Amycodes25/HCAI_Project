@@ -7,9 +7,10 @@
  * server-side would fold in network latency and page rendering, which are not
  * the participant's thinking time.
  *
- * Without this file the trial still works: the pairwise buttons submit their
- * own value, and the ranking has real number inputs. Only the drag-to-reorder
- * and the timing are lost.
+ * Without this file the trial still works. The ordering is reconstructed on the
+ * server from ordinary form fields: the pairwise buttons submit which film was
+ * chosen, and the ranking submits a position per film. Only drag-to-reorder and
+ * the response timing are lost.
  */
 (function () {
     "use strict";
@@ -20,7 +21,6 @@
     }
 
     var shownAt = performance.now();
-    var answerField = document.getElementById("answer");
     var elapsedField = document.getElementById("elapsed_ms");
     var list = document.getElementById("rank-list");
 
@@ -28,14 +28,11 @@
         elapsedField.value = Math.round(performance.now() - shownAt);
     }
 
-    // --- Pairwise ---------------------------------------------------------
+    // The button submits itself; this only records how long it took.
     form.addEventListener("click", function (event) {
-        var choice = event.target.closest ? event.target.closest(".movie-choice") : null;
-        if (!choice) {
-            return;
+        if (event.target.closest && event.target.closest(".movie-choice")) {
+            stampElapsed();
         }
-        stampElapsed();
-        answerField.value = choice.getAttribute("data-answer");
     });
 
     // --- Ranking ----------------------------------------------------------
@@ -65,7 +62,7 @@
         dragging.classList.add("dragging");
         event.dataTransfer.effectAllowed = "move";
         // Firefox will not start a drag without data set on the transfer.
-        event.dataTransfer.setData("text/plain", dragging.dataset.title || "");
+        event.dataTransfer.setData("text/plain", dragging.dataset.index || "");
     });
 
     list.addEventListener("dragend", function () {
@@ -112,11 +109,7 @@
         renumber();
     });
 
-    form.addEventListener("submit", function () {
-        stampElapsed();
-        // The answer is the ordering, best first.
-        answerField.value = items().map(function (item) {
-            return item.dataset.title;
-        }).join(" > ");
-    });
+    // renumber() keeps the position inputs in step with the visual order, so
+    // the form already carries the ordering by the time it is submitted.
+    form.addEventListener("submit", stampElapsed);
 }());

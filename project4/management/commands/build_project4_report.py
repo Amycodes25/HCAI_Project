@@ -1,74 +1,365 @@
-"""Generate the placeholder Project 4 report.
+"""Generate the Project 4 report PDF.
 
-The finished report will be written outside the codebase, as Project 3's was,
-and dropped in at the same path:
+The brief asks for a PDF describing the implemented method (Tasks 1 and 2) and
+the design of the user study (Task 3), downloadable from the project interface.
 
-    project4/static/project4/report.pdf
+It is generated rather than written by hand so that it cannot drift from the
+code: the feature list, the number of films and the prior strength are read from
+the implementation at build time, not retyped.
 
-This command exists so that path is never empty. A download button that yields
-a 404 is worse than one that yields a page saying the report is not written yet,
-and it means the download mechanism can be tested before the content exists.
+    python manage.py build_project4_report
 """
 
 from pathlib import Path
 
 from django.core.management.base import BaseCommand
+from reportlab.lib.enums import TA_JUSTIFY
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.units import cm
+from reportlab.platypus import (ListFlowable, ListItem, PageBreak, Paragraph,
+                                SimpleDocTemplate, Spacer, Table, TableStyle)
+from reportlab.lib import colors
 
-OUTPUT = (
-    Path(__file__).resolve().parents[2] / "static" / "project4" / "report.pdf"
-)
+from project4.ml import features, preference
 
-LINES = [
-    ("Project 4: Preference Elicitation", 20, "bold"),
-    ("Human-Centric Artificial Intelligence  |  Group 29", 11, "normal"),
-    ("", 8, "normal"),
-    ("This is a placeholder.", 13, "bold"),
-    ("", 6, "normal"),
-    ("The finished report will cover:", 11, "normal"),
-    ("", 4, "normal"),
-    ("Task 1 - the feature representation chosen for the IMDB 5000 films,", 10, "normal"),
-    ("and why, given that utility is linear in those features.", 10, "normal"),
-    ("", 4, "normal"),
-    ("Task 2 - the Plackett-Luce extension of the Bradley-Terry model to", 10, "normal"),
-    ("rankings, its reduction to Bradley-Terry at n = 2, the rejected", 10, "normal"),
-    ("rank-breaking alternative, and the estimator for w.", 10, "normal"),
-    ("", 4, "normal"),
-    ("Task 3 - the full design of the user study: hypothesis, assignment", 10, "normal"),
-    ("and counterbalancing, measures, recruitment, ethics and data", 10, "normal"),
-    ("protection, and the analysis plan.", 10, "normal"),
-    ("", 8, "normal"),
-    ("The interface for Task 4 is already implemented and can be reached", 10, "normal"),
-    ("from the project landing page.", 10, "normal"),
-]
+OUTPUT = Path(__file__).resolve().parents[2] / "static" / "project4" / "report.pdf"
+
+INK = colors.HexColor("#002429")
+MUTED = colors.HexColor("#58686e")
+LINE = colors.HexColor("#cfd9e6")
+ACCENT = colors.HexColor("#135e78")
+
+
+def styles():
+    base = getSampleStyleSheet()
+    return {
+        "title": ParagraphStyle("t", parent=base["Title"], fontSize=21,
+                                leading=25, textColor=INK, spaceAfter=4),
+        "subtitle": ParagraphStyle("st", parent=base["Normal"], fontSize=10.5,
+                                   leading=14, textColor=MUTED, spaceAfter=18),
+        "h1": ParagraphStyle("h1", parent=base["Heading1"], fontSize=14,
+                             leading=18, textColor=INK, spaceBefore=16,
+                             spaceAfter=6),
+        "h2": ParagraphStyle("h2", parent=base["Heading2"], fontSize=11,
+                             leading=15, textColor=ACCENT, spaceBefore=12,
+                             spaceAfter=4),
+        "body": ParagraphStyle("b", parent=base["BodyText"], fontSize=9.5,
+                               leading=14.5, textColor=INK, alignment=TA_JUSTIFY,
+                               spaceAfter=7),
+        "formula": ParagraphStyle("f", parent=base["BodyText"], fontSize=10,
+                                  leading=15, textColor=INK, alignment=1,
+                                  spaceBefore=6, spaceAfter=10,
+                                  fontName="Helvetica-Oblique"),
+        "small": ParagraphStyle("s", parent=base["BodyText"], fontSize=8.5,
+                                leading=12, textColor=MUTED, spaceAfter=6),
+    }
+
+
+def bullets(items, style):
+    return ListFlowable(
+        [ListItem(Paragraph(text, style), leftIndent=12) for text in items],
+        bulletType="bullet", bulletFontSize=6, leftIndent=14, spaceAfter=8,
+    )
+
+
+def table(rows):
+    t = Table(rows, colWidths=[4.2 * cm, 11.3 * cm], hAlign="LEFT")
+    t.setStyle(TableStyle([
+        ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 0), (-1, -1), 8.5),
+        ("TEXTCOLOR", (0, 0), (0, -1), ACCENT),
+        ("TEXTCOLOR", (1, 0), (1, -1), INK),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("LINEBELOW", (0, 0), (-1, -2), 0.4, LINE),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ("LEFTPADDING", (0, 0), (0, -1), 0),
+    ]))
+    return t
 
 
 class Command(BaseCommand):
-    help = "Write the placeholder Project 4 report PDF"
+    help = "Write the Project 4 report PDF from the implementation"
 
     def handle(self, *args, **options):
-        import matplotlib
-        matplotlib.use("Agg")
-        import matplotlib.pyplot as plt
+        s = styles()
+        names = features.feature_names()
+        genres = features.genre_summary()
+        others = names[features.N_GENRES:]
 
-        fig = plt.figure(figsize=(8.27, 11.69))  # A4 portrait
-        fig.patch.set_facecolor("white")
+        story = [
+            Paragraph("Preference Elicitation for a Movie Recommender", s["title"]),
+            Paragraph(
+                "Human-Centric Artificial Intelligence &nbsp;&middot;&nbsp; Group 29 "
+                "&nbsp;&middot;&nbsp; Project 4",
+                s["subtitle"]),
 
-        y = 0.93
-        for text, size, weight in LINES:
-            if text:
-                fig.text(0.11, y, text, fontsize=size, fontweight=weight,
-                         color="#002429", family="DejaVu Sans")
-            y -= size / 500 + 0.012
+            Paragraph("Introduction", s["h1"]),
+            Paragraph(
+                "This report covers the method behind a movie recommender that adapts to a new "
+                "user, and the design of a user study comparing two ways of eliciting that "
+                "user's preferences. The utility of a film to a user is taken to be linear, "
+                "U(x) = w<sup>T</sup>x, and the purpose of elicitation is to estimate w from a "
+                "small number of interactions. Section 1 sets out the feature representation, "
+                "section 2 the preference model and its estimator, and section 3 the study. "
+                "The study is designed, not conducted.", s["body"]),
+            Paragraph(
+                f"Everything reported here is produced by the implementation in "
+                f"<b>project4/ml/</b>, over the {features.movie_count()} films of the IMDB 5000 "
+                f"Movie Dataset that carry every field the representation needs.", s["body"]),
 
-        fig.text(0.11, 0.05,
-                 "Generated by manage.py build_project4_report - replace with the real report.",
-                 fontsize=8, color="#58686e", family="DejaVu Sans")
+            Paragraph("1 &nbsp; Feature representation", s["h1"]),
+            Paragraph("1.1 &nbsp; The constraint that decides the design", s["h2"]),
+            Paragraph(
+                "Two sentences of the specification fix the problem, and they pull against each "
+                "other. Because U is linear, whatever the representation does not carry cannot "
+                "be learned at all: a taste for a particular director exists only if some "
+                "component of x expresses it, which argues for more features. Because w must be "
+                "estimated from roughly ten interactions, every extra component is another "
+                "number to identify from the same evidence, which argues for fewer. A "
+                "representation with one column per director would have thousands of components "
+                "and none of them would be estimable.", s["body"]),
+            Paragraph(
+                f"The representation is therefore deliberately small: <b>{features.n_features()} "
+                f"components</b>, each chosen because it separates films in a way a person would "
+                f"recognise as taste.", s["body"]),
+
+            Paragraph("1.2 &nbsp; What is included", s["h2"]),
+            table([
+                ["Genre", f"Multi-hot over the {features.N_GENRES} most common genres: "
+                          + ", ".join(genres)
+                          + ". Multi-label by nature, since a film can be both a comedy and a "
+                            "romance, so multi-hot rather than one-hot. The remaining genres in "
+                            "the dataset appear on too few films for their weights to be "
+                            "estimated in a short session."],
+                ["Era", "Scaled release year. People have era preferences, and one scaled number "
+                        "captures the monotone part at the cost of a single component; one-hot "
+                        "decades would cost ten."],
+                ["Runtime", "Scaled duration. A ninety-minute film and a three-hour film are "
+                            "different propositions on a weeknight."],
+                ["Critical standing", "Scaled IMDB score. Separates viewers who follow acclaim "
+                                      "from those who do not."],
+                ["Popularity", "Scaled log vote count. Mainstream against obscure. Logged first, "
+                               "because vote counts span five orders of magnitude and the raw "
+                               "scale would let a few blockbusters dominate the inner product."],
+                ["Production scale", "Scaled log budget. A distinct axis from popularity: "
+                                     "expensive films can flop and cheap ones can be widely seen."],
+                ["Director prominence", "Scaled log director followers. A cheap proxy for the "
+                                        "auteur axis that avoids a column per director."],
+                ["Family-friendly", "Binary, G or PG against the rest. One-hot over the dozen "
+                                    "content ratings would spend a dozen components on a "
+                                    "distinction that matters mainly at this boundary."],
+            ]),
+
+            Paragraph("1.3 &nbsp; What is excluded", s["h2"]),
+            Paragraph(
+                "Director and cast identity, plot keywords and country of production are all "
+                "high-cardinality, and the signal in them worth keeping is already carried by "
+                "director prominence and popularity. Gross earnings are excluded because they "
+                "are largely determined by budget and popularity, both of which are present; a "
+                "third correlated column adds collinearity, and collinear features are precisely "
+                "what makes w hard to identify from few observations.", s["body"]),
+
+            Paragraph("1.4 &nbsp; Extraction and scaling", s["h2"]),
+            Paragraph(
+                "Rows missing any required field are dropped and duplicates on title and year "
+                "removed. Every continuous column is then standardised. This matters because "
+                "utility is an inner product: a column's scale sets the scale of its weight, so "
+                "without standardisation the budget column, of order 10<sup>8</sup>, and the "
+                "genre columns, which are zero or one, could not share a sensible prior and the "
+                "regularisation would penalise them wildly unevenly.", s["body"]),
+
+            PageBreak(),
+
+            Paragraph("2 &nbsp; Preference model", s["h1"]),
+            Paragraph("2.1 &nbsp; From a comparison to a ranking", s["h2"]),
+            Paragraph(
+                "Preferences are assumed to follow a Bradley&ndash;Terry model, which gives the "
+                "probability that one film is preferred to another from their utilities:", s["body"]),
+            Paragraph("P(i &gt; j) = exp(U<sub>i</sub>) / [ exp(U<sub>i</sub>) + exp(U<sub>j</sub>) ]",
+                      s["formula"]),
+            Paragraph(
+                "One of the two interfaces asks a participant to rank ten films, so the model has "
+                "to describe a whole ordering rather than a single comparison. The extension used "
+                "is the <b>Plackett&ndash;Luce model</b>, which treats a ranking as produced "
+                "sequentially: the participant picks their favourite from the set, then their "
+                "favourite of what remains, and so on, each pick following the Luce choice rule.",
+                s["body"]),
+            Paragraph(
+                "P(i<sub>1</sub> &gt; i<sub>2</sub> &gt; &hellip; &gt; i<sub>n</sub>) = "
+                "&Pi;<sub>k</sub> exp(U<sub>i<sub>k</sub></sub>) / "
+                "&Sigma;<sub>j&ge;k</sub> exp(U<sub>i<sub>j</sub></sub>)", s["formula"]),
+
+            Paragraph("2.2 &nbsp; Why this extension", s["h2"]),
+            Paragraph(
+                "First, it genuinely contains the model we started from. At n = 2 the product has "
+                "a single factor, exp(U<sub>1</sub>) / [exp(U<sub>1</sub>) + exp(U<sub>2</sub>)], "
+                "which is exactly Bradley&ndash;Terry. Both interfaces are therefore described by "
+                "one model with one w, and their results are directly comparable &mdash; which is "
+                "the entire point of the study. An extension that did not reduce would be a "
+                "second model in disguise, and the comparison would be confounded by the choice "
+                "of model rather than the choice of interface.", s["body"]),
+            Paragraph(
+                "Second, the generative story it encodes is a plausible account of what a person "
+                "actually does when ranking: choose the best, set it aside, choose the best of "
+                "the rest.", s["body"]),
+
+            Paragraph("2.3 &nbsp; The alternative that was rejected", s["h2"]),
+            Paragraph(
+                "A ranking of ten implies 45 pairwise comparisons, and these could be fed to "
+                "Bradley&ndash;Terry as if they were separate observations. This needs no new "
+                "model and is simpler. It is rejected because those 45 comparisons are not "
+                "independent: they arise from one ordering produced by one person in one act. "
+                "Treating them as independent multiplies the same evidence many times over, so "
+                "the likelihood is misspecified and the apparent precision of w is badly "
+                "overstated. In a study whose purpose is to compare how much each interface "
+                "reveals about w, an estimator that inflates its own confidence for one of the "
+                "two designs would decide the outcome before any data was collected.", s["body"]),
+
+            Paragraph("2.4 &nbsp; Estimating w", s["h2"]),
+            Paragraph(
+                "The log-likelihood of a set of observed rankings is concave in w. It is "
+                "maximised under a Gaussian prior:", s["body"]),
+            Paragraph(
+                "w&#770; = argmax &nbsp; &Sigma;<sub>r</sub> log P(ranking<sub>r</sub> | w) "
+                f"&nbsp;&minus;&nbsp; (&alpha;/2) ||w||<sup>2</sup>, &nbsp; &alpha; = "
+                f"{preference.DEFAULT_ALPHA}", s["formula"]),
+            Paragraph(
+                f"The prior is not decoration. With roughly ten interactions and "
+                f"{features.n_features()} features the unpenalised maximum is not unique: any "
+                f"direction the shown films do not distinguish is unconstrained, and the "
+                f"optimiser will run off along it. The penalty holds those directions at zero, "
+                f"which is the honest statement that the data said nothing about them. "
+                f"Optimisation uses L-BFGS with the analytic gradient.", s["body"]),
+            Paragraph(
+                "Two properties were checked against the implementation. At n = 2 the "
+                "Plackett&ndash;Luce probability equals the Bradley&ndash;Terry probability to "
+                "10<sup>&minus;12</sup>. The analytic gradient agrees with central differences to "
+                "10<sup>&minus;8</sup>.", s["small"]),
+
+            PageBreak(),
+
+            Paragraph("3 &nbsp; User study", s["h1"]),
+            Paragraph("3.1 &nbsp; Research question and hypothesis", s["h2"]),
+            Paragraph(
+                "The study compares two elicitation interfaces. In Design 1 the participant is "
+                "shown two films and chooses the one they would rather watch. In Design 2 they "
+                "are shown ten films and rank them.", s["body"]),
+            Paragraph(
+                "The two are not equally expensive, and this is the crux of the design. A "
+                "pairwise choice yields at most one bit and takes seconds. Ranking ten yields up "
+                "to log<sub>2</sub>(10!) &asymp; 21.8 bits but takes considerably longer and asks "
+                "more of the participant. So the question &lsquo;which elicits w better&rsquo; is "
+                "under-specified: <b>better per what?</b> Per interaction, ranking wins almost by "
+                "construction and the study would be pointless. Per minute of participant time it "
+                "is a genuine question. Fixing the budget by which the comparison is normalised "
+                "is the single most consequential decision in this design.", s["body"]),
+            Paragraph(
+                "<b>H1.</b> For a fixed amount of participant time, ranking ten films yields a "
+                "more accurate estimate of w than repeated pairwise choices.<br/>"
+                "<b>H0.</b> There is no difference in accuracy per unit of participant time.",
+                s["body"]),
+
+            Paragraph("3.2 &nbsp; Design", s["h2"]),
+            table([
+                ["Type", "Experimental. The interface is manipulated directly and assignment is "
+                         "controlled, which permits a causal claim; an observational comparison "
+                         "of people who happen to use each would not."],
+                ["Assignment", "Within-subjects: every participant uses both interfaces."],
+                ["Why within", "Taste varies enormously between people, and that variance is far "
+                               "larger than the expected effect of the interface. Between-subjects "
+                               "would need a great many more participants to see through it."],
+                ["Order control", "Counterbalanced, alternating across participants. Within-subjects "
+                                  "makes order a confound, since whichever interface comes second "
+                                  "benefits from practice and suffers from fatigue; alternating "
+                                  "spreads that evenly rather than letting it load onto one design."],
+                ["Other controls", "Practice trials before each block, and a break between blocks. "
+                                   "Films are drawn uniformly at random from the dataset."],
+                ["Trials", "Eight per interface; ranking sets of ten films."],
+            ]),
+
+            Paragraph("3.3 &nbsp; Measures", s["h2"]),
+            bullets([
+                "<b>Primary.</b> Agreement between the elicited preference and held-out choices "
+                "by the same participant, per minute of elicitation time.",
+                "<b>Secondary.</b> Time per trial; the remaining uncertainty about w; agreement "
+                "of the resulting top-k recommendations between the two designs.",
+                "<b>Subjective.</b> Perceived effort per interface, and which the participant "
+                "felt described their taste better, both from the closing questionnaire.",
+            ], s["body"]),
+            Paragraph(
+                "Response time is recorded per trial in the browser rather than on the server, "
+                "so that it measures the participant's thinking time and not network latency.",
+                s["small"]),
+
+            Paragraph("3.4 &nbsp; Participants and recruitment", s["h2"]),
+            bullets([
+                "Any adult who watches films; no domain expertise is required, since the task is "
+                "about personal taste rather than knowledge.",
+                "Recruited through university mailing lists and noticeboards, with the study run "
+                "online so participants take part at a time that suits them.",
+                "Compensation offered for their time, since asking for unpaid participation is "
+                "both an ethical problem and a source of self-selection bias.",
+                "Sample size determined from a pilot before recruitment begins, rather than "
+                "asserted; the pilot also provides the variance estimate needed to do so.",
+            ], s["body"]),
+
+            Paragraph("3.5 &nbsp; Procedure", s["h2"]),
+            Paragraph(
+                "Informed consent, before anything is recorded. Then instructions for the first "
+                "interface, practice trials, the first block of eight, a break, instructions for "
+                "the second interface, practice, the second block, the questionnaire, and a "
+                "debrief explaining what was being compared and how to request erasure. Piloting "
+                "with five to ten participants precedes the study proper, in person where "
+                "possible so that confusion can be observed directly; pilot data is excluded from "
+                "the final analysis.", s["body"]),
+
+            Paragraph("3.6 &nbsp; Ethics and data protection", s["h2"]),
+            bullets([
+                "Informed consent is required before any data is recorded, and the interface "
+                "cannot be started without it.",
+                "Only a pseudonymous random identifier is stored. No name, no email address, no "
+                "IP address.",
+                "Participation is voluntary and can be ended at any point, without giving a "
+                "reason and without penalty.",
+                "Data minimisation: only the responses and their timings, because both are "
+                "required by the stated measures and nothing else is.",
+                "Right to erasure. The identifier is shown at the end so a participant can "
+                "request deletion; it is the only handle linking their responses together.",
+                "Review by the university ethics board before recruitment begins.",
+            ], s["body"]),
+
+            Paragraph("3.7 &nbsp; Analysis plan", s["h2"]),
+            Paragraph(
+                "Exclusion criteria are fixed before collection, not after: trials whose response "
+                "time lies more than three standard deviations from the mean, participants whose "
+                "answers show no variation, and anyone failing the attention check. Deciding these "
+                "afterwards would allow the data to be filtered towards the hypothesis.", s["body"]),
+            Paragraph(
+                "Analysis then proceeds from descriptive statistics per condition, to a paired "
+                "test on the primary measure &mdash; paired because the design is within-subjects "
+                "and each participant provides both conditions &mdash; to the secondary measures "
+                "with a correction for multiple comparisons, since testing several outcomes at "
+                "&alpha; = 0.05 without one would make a spurious result likely.", s["body"]),
+
+            Spacer(1, 14),
+            Paragraph(
+                "The interface described in section 3 is implemented and reachable from the "
+                "project landing page. This report is generated from the implementation by "
+                "<b>manage.py build_project4_report</b>, so the feature list, dataset size and "
+                "prior strength quoted above cannot drift from the code.", s["small"]),
+        ]
 
         OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-        fig.savefig(OUTPUT, format="pdf")
-        plt.close(fig)
+        SimpleDocTemplate(
+            str(OUTPUT), pagesize=A4,
+            leftMargin=2.4 * cm, rightMargin=2.4 * cm,
+            topMargin=2.2 * cm, bottomMargin=2.2 * cm,
+            title="Project 4 - Preference Elicitation",
+            author="HCAI Group 29",
+        ).build(story)
 
-        size_kb = OUTPUT.stat().st_size / 1024
         self.stdout.write(self.style.SUCCESS(
-            f"Wrote {OUTPUT} ({size_kb:.0f} KB)"
+            f"Wrote {OUTPUT} ({OUTPUT.stat().st_size / 1024:.0f} KB)"
         ))

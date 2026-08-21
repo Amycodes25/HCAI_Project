@@ -23,6 +23,7 @@ class StudySession(models.Model):
     condition_order = models.JSONField()
     created_at = models.DateTimeField(auto_now_add=True)
     completed = models.BooleanField(default=False)
+    estimated_w = models.JSONField(null=True, blank=True)
 
     class Meta:
         ordering = ["created_at"]

@@ -24,9 +24,9 @@ Update both together.
 | App | URL | Project | Status |
 |-----|-----|---------|--------|
 | `project1` | `/project1/` | Supervised Learning Interface | Working |
-| `project2` | `/project2/` | Explainability | Placeholder — port in progress |
+| `project2` | `/project2/` | Explainability | Working |
 | `learning_to_defer` | `/project3/` | Active Learning for Learning-to-Defer | Working |
-| `project4` | `/project4/` | Preference Elicitation | Placeholder — in progress |
+| `project4` | `/project4/` | Preference Elicitation | Working |
 
 ## Setup
 
@@ -56,15 +56,29 @@ committed. Skipping `migrate` makes the first CSV upload fail with
 
 ## Development
 
-`requirements-dev.txt` adds `datasets`, which is needed only to regenerate the
-Project 3 artifacts from scratch:
+`requirements-dev.txt` adds the two packages needed only to regenerate
+committed build products:
 
 ```bash
 pip install -r requirements-dev.txt
 ```
 
-The site itself never downloads AG News — Project 3 serves from the committed
-artifacts in `learning_to_defer/artifacts/`.
+Nothing the site serves depends on them, and it never downloads anything at
+runtime. Every dataset and model it needs is committed.
+
+| Command | Rebuilds | Needs |
+|---------|----------|-------|
+| `manage.py build_project2` | Project 2's 69 fitted models | runtime only |
+| `manage.py build_project4_report` | Project 4's report PDF | `reportlab` |
+| `learning_to_defer/services/*.py` | Project 3's artifacts | `datasets` |
+
+## Tests
+
+```bash
+python manage.py test
+```
+
+55 tests across Projects 1 and 4, covering the model code and the views.
 
 ## Conventions
 

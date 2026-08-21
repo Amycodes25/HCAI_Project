@@ -21,25 +21,50 @@
         expressive it is. The interesting work is choosing between those.
     </p>
 
-    <h3>Candidate features</h3>
+    <h3>The representation</h3>
+    <p>
+        {{ n_features }} components over {{ n_movies }} films. Genre is
+        multi-hot, because a film can be both a comedy and a romance:
+    </p>
     <ul class="pill-list">
-        {% for name in feature_names %}<li>{{ name }}</li>{% endfor %}
+        {% for name in genres %}<li>{{ name }}</li>{% endfor %}
+    </ul>
+    <p>The rest are one component each:</p>
+    <ul class="pill-list">
+        {% for name in other_features %}<li>{{ name }}</li>{% endfor %}
     </ul>
 
-    <h3>Open decisions</h3>
-    <ul>
-        <li>Genre is multi-label, so multi-hot rather than one-hot &mdash; a film can be both.</li>
-        <li>Director and cast are high-cardinality. Frequency buckets, a numeric standing derived from their other films, or dropped entirely?</li>
-        <li>Year as a decade bucket or a scaled number.</li>
-        <li>What dimensionality is actually identifiable from ten comparisons.</li>
-    </ul>
+    <h3>What was left out, and why</h3>
+    <p>
+        Director and cast identity, plot keywords and country are all
+        high-cardinality: a column per director would mean thousands of
+        components, none of them estimable from ten interactions. The part of
+        that signal worth keeping is carried by <em>director prominence</em> and
+        <em>popularity</em> instead.
+    </p>
+    <p>
+        Gross earnings are excluded because they are largely determined by
+        budget and popularity, which are both present. A third correlated column
+        adds collinearity, and collinear features are exactly what makes
+        <em>w</em> hard to identify from few observations.
+    </p>
 
-    {% if not is_implemented %}
-        <p class="inline-note">
-            Not implemented yet. The interface currently draws from a sample of
-            {{ n_movies }} films so the participant flow can be built and tested;
-            no features are extracted and no utility is computed.
-        </p>
-    {% endif %}
+    <h3>Standardisation</h3>
+    <p>
+        Every continuous column is standardised. Utility is
+        <em>w<sup>T</sup>x</em>, so a column's scale sets its weight's scale
+        &mdash; without this the budget column, of order 10<sup>8</sup>, and the
+        genre columns, which are 0 or 1, could not share a sensible prior, and
+        the regularisation would penalise them wildly unevenly. Vote counts,
+        budget and director followers are logged first, since each spans several
+        orders of magnitude.
+    </p>
+
+    <h3>Extraction</h3>
+    <p>
+        <code>project4/ml/features.py</code> reads the dataset, drops rows
+        missing any required field, de-duplicates on title and year, and returns
+        the design matrix. It runs once and is cached.
+    </p>
 </div>
 {% endblock %}

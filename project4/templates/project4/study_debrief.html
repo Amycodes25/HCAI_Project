@@ -17,6 +17,31 @@
         long each answer took as well as what it was.
     </p>
 
+    {% if recommendations %}
+        <h2>What we estimated from your answers</h2>
+        <p>
+            Your answers were used to estimate a preference vector, and these are
+            the films it scores highest across all {{ n_movies }} in the dataset.
+            With this few interactions the estimate is rough, which is precisely
+            what the study is set up to measure.
+        </p>
+        <ol class="result-list">
+            {% for movie in recommendations %}
+                <li>
+                    <span class="movie-title">{{ movie.title }}</span>
+                    <span class="movie-meta">{{ movie.year }} &middot; {{ movie.genres }}</span>
+                </li>
+            {% endfor %}
+        </ol>
+
+        <p class="weights-intro">The features that weighed most:</p>
+        <ul class="weight-list">
+            {% for name, value in weights %}
+                <li><span>{{ name }}</span><code>{{ value }}</code></li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
     <h2>Your identifier</h2>
     <p class="participant-id">{{ participant }}</p>
     <p>
