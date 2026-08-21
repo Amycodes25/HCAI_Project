@@ -1,0 +1,60 @@
+<div class="card-header">
+    <div class="card-title-wrapper">
+        <div class="icon-box">&#9651;</div>
+        <div>
+            <h2>Model and complexity</h2>
+            <p class="card-subtitle">
+                Of {{ n_candidates }} pre-fitted models, the one shown maximises
+                accuracy &minus; &lambda;&thinsp;&middot;&thinsp;&Omega;(f).
+                &Omega; is the number of leaves for a tree, and
+                &#8214;W&#8214;&#8321; for logistic regression.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="controls">
+    <div class="control">
+        <label for="family">Model family</label>
+        <select id="family" name="family" form="p2-controls" data-affects="all">
+            <option value="tree" {% if family == 'tree' %}selected{% endif %}>Decision tree</option>
+            <option value="logreg" {% if family == 'logreg' %}selected{% endif %}>Logistic regression</option>
+        </select>
+    </div>
+
+    <div class="control control-wide">
+        <label for="lam">&lambda; = <span data-lambda-readout>{{ lam }}</span></label>
+        <input type="range" id="lam" name="lam" form="p2-controls" data-affects="all"
+               min="0" max="{{ max_lambda }}" step="{{ lambda_step }}" value="{{ lam }}">
+        <p class="helper-text">Higher &lambda; buys simplicity at the cost of accuracy.</p>
+    </div>
+
+    <div class="control control-submit">
+        <button class="button" type="submit" form="p2-controls">Update</button>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Test accuracy</div>
+        <div class="stat-value">{{ accuracy_pct }}%</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">{{ omega_label }}</div>
+        <div class="stat-value">{{ omega_display }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Selected model</div>
+        <div class="stat-value small">{{ family_label }}<br>{{ selected.setting_label }}</div>
+    </div>
+</div>
+
+<div class="plot-wrapper plot-model">
+    <img src="data:image/png;base64,{{ model_plot }}"
+         alt="The selected {{ family_label|lower }}">
+</div>
+
+<div class="plot-wrapper plot-tradeoff">
+    <img src="data:image/png;base64,{{ tradeoff_plot }}"
+         alt="Test accuracy against model complexity">
+</div>

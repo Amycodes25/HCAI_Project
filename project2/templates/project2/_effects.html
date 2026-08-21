@@ -1,0 +1,33 @@
+<div class="card-header">
+    <div class="card-title-wrapper">
+        <div class="icon-box">&#8767;</div>
+        <div>
+            <h2>Feature effect plots</h2>
+            <p class="card-subtitle">
+                Partial dependence and accumulated local effects for
+                {{ feature_label|lower }}, one curve per species, computed from
+                scratch rather than taken from a library.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="controls">
+    <div class="control">
+        <label for="feature">Feature</label>
+        <select id="feature" name="feature" form="p2-controls" data-affects="effects">
+            {% for name, label in numeric_features %}
+                <option value="{{ name }}" {% if name == feature %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+
+<div class="section-note">
+    <p><strong>Derivatives: {{ derivative_method }}.</strong> {{ derivative_note }}</p>
+</div>
+
+<div class="plot-wrapper">
+    <img src="data:image/png;base64,{{ effects_plot }}"
+         alt="PDP and ALE for {{ feature_label }}">
+</div>

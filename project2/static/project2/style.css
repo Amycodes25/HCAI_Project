@@ -211,3 +211,24 @@
 @media (max-width: 860px) {
     .cf-layout { grid-template-columns: 1fr; }
 }
+
+/* --- Refreshing state ------------------------------------------------------
+   A region fades slightly while its replacement is fetched. The point is to
+   show that something is happening without moving anything, since the whole
+   reason for the partial refresh is that the page should stay put. */
+
+.card { transition: opacity .18s ease; }
+
+.card.is-busy { opacity: .55; }
+
+.card.is-busy .controls { pointer-events: none; }
+
+@media (prefers-reduced-motion: reduce) {
+    .card { transition: none; }
+}
+
+.control-submit { display: flex; align-items: flex-end; }
+
+/* With JavaScript the controls apply themselves, so the button is only the
+   no-JS fallback. It stays reachable by keyboard but out of the way. */
+.js-on .control-submit { display: none; }

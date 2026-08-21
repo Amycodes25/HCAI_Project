@@ -1,0 +1,79 @@
+<div class="card-header">
+    <div class="card-title-wrapper">
+        <div class="icon-box">&#8646;</div>
+        <div>
+            <h2>Counterfactuals</h2>
+            <p class="card-subtitle">
+                What would have to be different about this penguin for the model
+                above to call it something else? Candidates are sampled locally,
+                filtered to the target class, and ranked by MAD-weighted L1 distance.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="controls">
+    <div class="control">
+        <label for="point">Penguin</label>
+        <select id="point" name="point" form="p2-controls" data-affects="counterfactuals">
+            {% for i in points %}
+                <option value="{{ i }}" {% if i == point_index %}selected{% endif %}>#{{ i }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="control">
+        <label for="target">Target species</label>
+        <select id="target" name="target" form="p2-controls" data-affects="counterfactuals">
+            {% for c in classes %}
+                <option value="{{ c }}" {% if c == target %}selected{% endif %}>{{ c }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="control">
+        <label for="k">How many</label>
+        <select id="k" name="k" form="p2-controls" data-affects="counterfactuals">
+            {% for n in "12345"|make_list %}
+                <option value="{{ n }}" {% if n|add:0 == k %}selected{% endif %}>{{ n }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+
+<div class="cf-layout">
+    <div class="point-panel">
+        <h3>Penguin #{{ point_index }}</h3>
+        <p class="point-verdict">
+            Actually <strong>{{ point_actual }}</strong>,
+            predicted <strong>{{ point_predicted }}</strong>
+        </p>
+        <dl class="point-values">
+            {% for label, value in point_values %}
+                <div><dt>{{ label }}</dt><dd>{{ value }}</dd></div>
+            {% endfor %}
+        </dl>
+    </div>
+
+    <div class="cf-results">
+        <p class="helper-text">{{ cf_note }}</p>
+        {% for cf in counterfactuals %}
+            <article class="cf-card">
+                <header>
+                    <strong>Change {{ cf.n_changed }} of 7</strong>
+                    <span class="cf-distance">distance {{ cf.distance }}</span>
+                </header>
+                <ul>
+                    {% for change in cf.changes %}
+                        <li>
+                            <span class="cf-feature">{{ change.label }}</span>
+                            <span class="cf-before">{{ change.before }}</span>
+                            <span class="cf-arrow" aria-hidden="true">&rarr;</span>
+                            <span class="cf-after">{{ change.after }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </article>
+        {% endfor %}
+    </div>
+</div>

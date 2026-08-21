@@ -16,216 +16,38 @@
                 <p class="eyebrow">Project 2</p>
                 <h1>Explainability</h1>
                 <p>Interpretability and complexity on the Palmer Penguins dataset.
-                Every region below reads from the one model you select here, so the
+                Every region below reads from the one model you select, so the
                 counterfactuals and the effect plots always explain the model on screen.</p>
             </div>
             <div class="status-chip">{{ train_size }} train &middot; {{ test_size }} test</div>
         </div>
     </header>
 
-    <!-- Tasks 1-3: model family and the lambda trade-off -->
-    <section class="card" id="model">
-        <div class="card-header">
-            <div class="card-title-wrapper">
-                <div class="icon-box">&#9651;</div>
-                <div>
-                    <h2>Model and complexity</h2>
-                    <p class="card-subtitle">
-                        Of {{ n_candidates }} pre-fitted models, the one shown maximises
-                        accuracy &minus; &lambda;&thinsp;&middot;&thinsp;&Omega;(f).
-                        &Omega; is the number of leaves for a tree, and
-                        &#8214;W&#8214;&#8321; for logistic regression.
-                    </p>
-                </div>
-            </div>
-        </div>
+    {% comment %}
+    All controls live in the three regions but belong to this one form via their
+    `form` attribute. With JavaScript off, changing a control and pressing Update
+    performs an ordinary GET and the whole page re-renders. With JavaScript on,
+    project2.js intercepts and refreshes only the affected regions.
+    {% endcomment %}
+    <form id="p2-controls" method="get" action="{% url 'project2:index' %}"></form>
 
-        <form method="get" class="controls">
-            <input type="hidden" name="point" value="{{ point_index }}">
-            <input type="hidden" name="target" value="{{ target }}">
-            <input type="hidden" name="k" value="{{ k }}">
-            <input type="hidden" name="feature" value="{{ feature }}">
-
-            <div class="control">
-                <label for="family">Model family</label>
-                <select id="family" name="family" onchange="this.form.submit()">
-                    <option value="tree" {% if family == 'tree' %}selected{% endif %}>Decision tree</option>
-                    <option value="logreg" {% if family == 'logreg' %}selected{% endif %}>Logistic regression</option>
-                </select>
-            </div>
-
-            <div class="control control-wide">
-                <label for="lam">&lambda; = {{ lam }}</label>
-                <input type="range" id="lam" name="lam" min="0" max="{{ max_lambda }}"
-                       step="{{ lambda_step }}" value="{{ lam }}"
-                       oninput="this.previousElementSibling.textContent = 'λ = ' + this.value"
-                       onchange="this.form.submit()">
-                <p class="helper-text">Higher &lambda; buys simplicity at the cost of accuracy.</p>
-            </div>
-
-            <div class="control">
-                <button class="button" type="submit">Apply</button>
-            </div>
-        </form>
-
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-label">Test accuracy</div>
-                <div class="stat-value">{{ accuracy_pct }}%</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">{{ omega_label }}</div>
-                <div class="stat-value">{{ omega_display }}</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Selected model</div>
-                <div class="stat-value small">{{ family_label }}<br>{{ selected.setting_label }}</div>
-            </div>
-        </div>
-
-        <div class="plot-wrapper plot-model">
-            <img src="data:image/png;base64,{{ model_plot }}"
-                 alt="The selected {{ family_label|lower }}">
-        </div>
-
-        <div class="plot-wrapper plot-tradeoff">
-            <img src="data:image/png;base64,{{ tradeoff_plot }}"
-                 alt="Test accuracy against model complexity">
-        </div>
+    <section class="card" id="region-model" data-region="model">
+        {% include 'project2/_model.html' %}
     </section>
 
-    <!-- Task 4 -->
-    <section class="card" id="counterfactuals">
-        <div class="card-header">
-            <div class="card-title-wrapper">
-                <div class="icon-box">&#8646;</div>
-                <div>
-                    <h2>Counterfactuals</h2>
-                    <p class="card-subtitle">
-                        What would have to be different about this penguin for the
-                        model above to call it something else? Candidates are sampled
-                        locally, filtered to the target class, and ranked by
-                        MAD-weighted L1 distance.
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <form method="get" class="controls">
-            <input type="hidden" name="family" value="{{ family }}">
-            <input type="hidden" name="lam" value="{{ lam }}">
-            <input type="hidden" name="feature" value="{{ feature }}">
-
-            <div class="control">
-                <label for="point">Penguin</label>
-                <select id="point" name="point" onchange="this.form.submit()">
-                    {% for i in points %}
-                        <option value="{{ i }}" {% if i == point_index %}selected{% endif %}>#{{ i }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="control">
-                <label for="target">Target species</label>
-                <select id="target" name="target" onchange="this.form.submit()">
-                    {% for c in classes %}
-                        <option value="{{ c }}" {% if c == target %}selected{% endif %}>{{ c }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="control">
-                <label for="k">How many</label>
-                <select id="k" name="k" onchange="this.form.submit()">
-                    {% for n in "12345"|make_list %}
-                        <option value="{{ n }}" {% if n|add:0 == k %}selected{% endif %}>{{ n }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </form>
-
-        <div class="cf-layout">
-            <div class="point-panel">
-                <h3>Penguin #{{ point_index }}</h3>
-                <p class="point-verdict">
-                    Actually <strong>{{ point_actual }}</strong>,
-                    predicted <strong>{{ point_predicted }}</strong>
-                </p>
-                <dl class="point-values">
-                    {% for label, value in point_values %}
-                        <div><dt>{{ label }}</dt><dd>{{ value }}</dd></div>
-                    {% endfor %}
-                </dl>
-            </div>
-
-            <div class="cf-results">
-                <p class="helper-text">{{ cf_note }}</p>
-                {% for cf in counterfactuals %}
-                    <article class="cf-card">
-                        <header>
-                            <strong>Change {{ cf.n_changed }} of 7</strong>
-                            <span class="cf-distance">distance {{ cf.distance }}</span>
-                        </header>
-                        <ul>
-                            {% for change in cf.changes %}
-                                <li>
-                                    <span class="cf-feature">{{ change.label }}</span>
-                                    <span class="cf-before">{{ change.before }}</span>
-                                    <span class="cf-arrow" aria-hidden="true">&rarr;</span>
-                                    <span class="cf-after">{{ change.after }}</span>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    </article>
-                {% endfor %}
-            </div>
-        </div>
+    <section class="card" id="region-counterfactuals" data-region="counterfactuals">
+        {% include 'project2/_counterfactuals.html' %}
     </section>
 
-    <!-- Task 5 -->
-    <section class="card" id="effects">
-        <div class="card-header">
-            <div class="card-title-wrapper">
-                <div class="icon-box">&#8767;</div>
-                <div>
-                    <h2>Feature effect plots</h2>
-                    <p class="card-subtitle">
-                        Partial dependence and accumulated local effects for
-                        {{ feature_label|lower }}, one curve per species, computed
-                        from scratch rather than taken from a library.
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <form method="get" class="controls">
-            <input type="hidden" name="family" value="{{ family }}">
-            <input type="hidden" name="lam" value="{{ lam }}">
-            <input type="hidden" name="point" value="{{ point_index }}">
-            <input type="hidden" name="target" value="{{ target }}">
-            <input type="hidden" name="k" value="{{ k }}">
-
-            <div class="control">
-                <label for="feature">Feature</label>
-                <select id="feature" name="feature" onchange="this.form.submit()">
-                    {% for name, label in numeric_features %}
-                        <option value="{{ name }}" {% if name == feature %}selected{% endif %}>{{ label }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </form>
-
-        <div class="section-note">
-            <p><strong>Derivatives: {{ derivative_method }}.</strong> {{ derivative_note }}</p>
-        </div>
-
-        <div class="plot-wrapper">
-            <img src="data:image/png;base64,{{ effects_plot }}"
-                 alt="PDP and ALE for {{ feature_label }}">
-        </div>
+    <section class="card" id="region-effects" data-region="effects">
+        {% include 'project2/_effects.html' %}
     </section>
 
     <p class="footer">HCAI Project 2 &middot; Explainability &middot; Palmer Penguins</p>
 
 </div>
 {% endblock %}
+
+{% block script %}
+    <script src="{% static 'project2/project2.js' %}" defer></script>
+{% endblock script %}
