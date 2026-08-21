@@ -108,7 +108,7 @@
 }
 
 .project-shell .button,
-.dashboard .button {
+.dashboard-main .button {
     display: inline-flex;
     width: auto;
     min-height: 42px;
@@ -128,7 +128,7 @@
 }
 
 .project-shell .button:hover,
-.dashboard .button:hover { transform: translateY(-2px); background: var(--theme-coffee); }
+.dashboard-main .button:hover { transform: translateY(-2px); background: var(--theme-coffee); }
 
 /* --- Stats ---------------------------------------------------------------- */
 

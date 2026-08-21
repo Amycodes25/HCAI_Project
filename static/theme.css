@@ -59,11 +59,11 @@ div { font-family: inherit; }
 .dashboard { font-family: inherit; }
 
 .project-shell p,
-.dashboard p,
+.dashboard-main p,
 .project-shell label,
-.dashboard label,
+.dashboard-main label,
 .project-shell li,
-.dashboard li { text-align: left; }
+.dashboard-main li { text-align: left; }
 
 /* --- Page hero ----------------------------------------------------------- */
 
@@ -150,7 +150,7 @@ div { font-family: inherit; }
 .project-shell .primary-button,
 /* --- Buttons and links --------------------------------------------------- */
 
-.dashboard .primary-button {
+.dashboard-main .primary-button {
     display: inline-flex;
     width: auto;
     min-height: 44px;
@@ -171,7 +171,7 @@ div { font-family: inherit; }
 }
 
 .project-shell .primary-button:hover,
-.dashboard .primary-button:hover {
+.dashboard-main .primary-button:hover {
     opacity: 1;
     transform: translateY(-2px);
     background: var(--theme-coffee);
@@ -179,7 +179,7 @@ div { font-family: inherit; }
 }
 
 .project-shell .secondary-button,
-.dashboard .secondary-button {
+.dashboard-main .secondary-button {
     display: inline-flex;
     width: auto;
     height: auto;
@@ -197,16 +197,16 @@ div { font-family: inherit; }
 }
 
 .project-shell .secondary-button:hover,
-.dashboard .secondary-button:hover {
+.dashboard-main .secondary-button:hover {
     border-color: var(--theme-periwinkle);
     background: rgba(206, 154, 213, .12);
 }
 
 .project-shell a,
-.dashboard a { color: #135e78; }
+.dashboard-main a { color: #135e78; }
 
 .project-shell code,
-.dashboard code {
+.dashboard-main code {
     padding: .1em .4em;
     color: var(--theme-coffee);
     border: 1px solid rgba(153, 153, 214, .25);
@@ -255,18 +255,18 @@ div { font-family: inherit; }
 .project-shell label,
 /* --- Forms --------------------------------------------------------------- */
 
-.dashboard label { display: block; margin-bottom: .3rem; color: var(--theme-muted); font-size: .75rem; font-weight: 700; }
+.dashboard-main label { display: block; margin-bottom: .3rem; color: var(--theme-muted); font-size: .75rem; font-weight: 700; }
 
 .project-shell select,
-.dashboard select,
+.dashboard-main select,
 .project-shell input[type="text"],
-.dashboard input[type="text"],
+.dashboard-main input[type="text"],
 .project-shell input[type="number"],
-.dashboard input[type="number"],
+.dashboard-main input[type="number"],
 .project-shell input[type="file"],
-.dashboard input[type="file"],
+.dashboard-main input[type="file"],
 .project-shell textarea,
-.dashboard textarea {
+.dashboard-main textarea {
     width: 100%;
     padding: .6rem .7rem;
     color: var(--theme-jet);
@@ -278,15 +278,15 @@ div { font-family: inherit; }
 }
 
 .project-shell select:focus-visible,
-.dashboard select:focus-visible,
+.dashboard-main select:focus-visible,
 .project-shell input:focus-visible,
-.dashboard input:focus-visible,
+.dashboard-main input:focus-visible,
 .project-shell textarea:focus-visible,
-.dashboard textarea:focus-visible,
+.dashboard-main textarea:focus-visible,
 .project-shell a:focus-visible,
-.dashboard a:focus-visible,
+.dashboard-main a:focus-visible,
 .project-shell button:focus-visible,
-.dashboard button:focus-visible {
+.dashboard-main button:focus-visible {
     outline: 2px solid var(--theme-sky);
     outline-offset: 2px;
 }
@@ -319,7 +319,7 @@ in
 
 .hub-nav,
 in
-   the same screen position. Pages built on .dashboard use this breadcrumb;
+   the same screen position. Pages built on .dashboard-main use this breadcrumb;
    Project 3 surfaces the same link inside its own sidebar and task nav.
    -------------------------------------------------------------------------- */
 

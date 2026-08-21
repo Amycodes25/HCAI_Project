@@ -196,7 +196,7 @@
 .project-shell .button,
 /* Buttons here reuse the theme's primary/secondary shapes. */
 
-.dashboard .button {
+.dashboard-main .button {
     display: inline-flex;
     width: auto;
     min-height: 44px;
@@ -217,7 +217,7 @@
 }
 
 .project-shell .button:hover,
-.dashboard .button:hover {
+.dashboard-main .button:hover {
     opacity: 1;
     transform: translateY(-2px);
     background: var(--theme-coffee);
@@ -225,7 +225,7 @@
 }
 
 .project-shell .button.secondary,
-.dashboard .button.secondary {
+.dashboard-main .button.secondary {
     color: var(--theme-coffee);
     border: 1px solid var(--theme-line);
     background: var(--theme-white);
@@ -233,17 +233,17 @@
 }
 
 .project-shell .button.secondary:hover,
-.dashboard .button.secondary:hover { border-color: var(--theme-periwinkle); background: rgba(206, 154, 213, .12); }
+.dashboard-main .button.secondary:hover { border-color: var(--theme-periwinkle); background: rgba(206, 154, 213, .12); }
 
 .project-shell .button.danger,
-.dashboard .button.danger { background: #8d2438; box-shadow: 0 10px 24px rgba(141, 36, 56, .2); }
+.dashboard-main .button.danger { background: #8d2438; box-shadow: 0 10px 24px rgba(141, 36, 56, .2); }
 .project-shell .button.danger:hover,
-.dashboard .button.danger:hover { background: #a62942; }
+.dashboard-main .button.danger:hover { background: #a62942; }
 
 .project-shell .button.success,
-.dashboard .button.success { background: #08765a; box-shadow: 0 10px 24px rgba(8, 118, 90, .2); }
+.dashboard-main .button.success { background: #08765a; box-shadow: 0 10px 24px rgba(8, 118, 90, .2); }
 .project-shell .button.success:hover,
-.dashboard .button.success:hover { background: #096b52; }
+.dashboard-main .button.success:hover { background: #096b52; }
 
 /* --- Data table and plots ------------------------------------------------- */
 
@@ -368,7 +368,7 @@ so the
 so the
    page never jumps. Dim it while that is in flight. */
 
-.dashboard { transition: opacity .18s ease; }
+.dashboard-main { transition: opacity .18s ease; }
 
 .project-shell.is-busy,
 .dashboard.is-busy { opacity: .6; }

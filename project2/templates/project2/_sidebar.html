@@ -13,14 +13,24 @@
         </a>
 
         {% comment %}
-        Anchors, not separate pages. The brief requires the counterfactual and
-        feature-effect regions to stay tied to the model and lambda chosen above
-        them, so splitting them across URLs would break the thing being asked for.
+        Every task in the brief appears once, in order. Tasks 1 to 3 all concern
+        the selected model and share one region, so they share an anchor.
+
+        These scroll rather than linking to separate pages: the brief requires
+        the counterfactual and feature-effect regions to stay tied to the model
+        and lambda chosen above them, so splitting them across URLs would break
+        the thing being asked for.
         {% endcomment %}
         <p class="nav-label">Project workspace</p>
         <nav class="sidebar-nav">
             <a href="#region-model">
-                <span>Tasks 1&ndash;3</span><small>{{ family_label }} &middot; {{ accuracy_pct }}%</small>
+                <span>Task 1</span><small>Decision tree &middot; {{ omega_display }} leaves</small>
+            </a>
+            <a href="#region-model">
+                <span>Task 2</span><small>&lambda; trade-off &middot; {{ accuracy_pct }}%</small>
+            </a>
+            <a href="#region-model">
+                <span>Task 3</span><small>Logistic regression</small>
             </a>
             <a href="#region-counterfactuals">
                 <span>Task 4</span><small>Counterfactuals &middot; #{{ point_index }}</small>
