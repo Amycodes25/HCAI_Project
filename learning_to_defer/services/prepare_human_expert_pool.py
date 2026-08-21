@@ -4,7 +4,6 @@ from pathlib import Path
 import joblib
 import numpy as np
 
-from datasets import load_dataset
 
 from .simulated_expert import CLASS_NAMES
 from .train_baseline import combine_text
@@ -22,6 +21,11 @@ POOL_SIZE = 20
 
 
 def main():
+    # Imported here rather than at module scope: `datasets` is only needed
+    # to regenerate the artifacts, so the app, its tests and a plain
+    # `pip install -r requirements.txt` do not require it.
+    from datasets import load_dataset
+
     baseline_path = (
         ARTIFACT_DIR
         / "baseline_pipeline.joblib"

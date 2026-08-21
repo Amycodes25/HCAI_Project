@@ -3,7 +3,6 @@ from pathlib import Path
 
 import joblib
 import numpy as np
-from datasets import load_dataset
 from sklearn.metrics import brier_score_loss, roc_auc_score
 
 from .active_learning import (
@@ -228,6 +227,11 @@ def aggregate_results(all_results):
 
 
 def main():
+    # Imported here rather than at module scope: `datasets` is only needed
+    # to regenerate the artifacts, so the app, its tests and a plain
+    # `pip install -r requirements.txt` do not require it.
+    from datasets import load_dataset
+
     if not BASELINE_MODEL_PATH.exists():
         raise FileNotFoundError(
             "Task 1 model not found. Run the baseline training first."

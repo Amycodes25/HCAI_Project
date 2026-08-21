@@ -8,7 +8,6 @@ import json
 from pathlib import Path
 
 import joblib
-from datasets import load_dataset
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
@@ -59,6 +58,11 @@ def build_pipeline(min_df=2):
 
 
 def main():
+    # Imported here rather than at module scope: `datasets` is only needed
+    # to regenerate the artifacts, so the app, its tests and a plain
+    # `pip install -r requirements.txt` do not require it.
+    from datasets import load_dataset
+
     print("Loading the official AG News train and test splits...")
     dataset = load_dataset("fancyzhx/ag_news")
     train_split = dataset["train"]

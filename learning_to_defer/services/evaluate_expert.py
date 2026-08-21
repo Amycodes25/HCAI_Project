@@ -2,7 +2,6 @@ import json
 from pathlib import Path
 
 import joblib
-from datasets import load_dataset
 from sklearn.metrics import (
     accuracy_score,
     classification_report,
@@ -28,6 +27,11 @@ ARTIFACT_DIR = (
 
 
 def main():
+    # Imported here rather than at module scope: `datasets` is only needed
+    # to regenerate the artifacts, so the app, its tests and a plain
+    # `pip install -r requirements.txt` do not require it.
+    from datasets import load_dataset
+
     print("Loading the official AG News test split...")
 
     test_dataset = load_dataset(

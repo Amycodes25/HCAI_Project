@@ -4,7 +4,6 @@ from pathlib import Path
 import joblib
 import numpy as np
 
-from datasets import load_dataset
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
@@ -96,6 +95,11 @@ def calculate_per_class_results(
 
 
 def main():
+    # Imported here rather than at module scope: `datasets` is only needed
+    # to regenerate the artifacts, so the app, its tests and a plain
+    # `pip install -r requirements.txt` do not require it.
+    from datasets import load_dataset
+
     if not BASELINE_MODEL_PATH.exists():
         raise FileNotFoundError(
             "The Task 1 baseline model was not found. "
