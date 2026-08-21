@@ -202,8 +202,12 @@ div { font-family: inherit; }
     background: rgba(206, 154, 213, .12);
 }
 
-.project-shell a,
-.dashboard-main a { color: #135e78; }
+/* Body links only. A descendant selector like `.dashboard-main a` outranks a
+   plain class like `.button-dark`, so without the :not() this repaints every
+   anchor that is styled as a button -- which it did, leaving dark teal text on
+   a dark button. Anchors that carry their own class bring their own colour. */
+.project-shell a:not([class]),
+.dashboard-main a:not([class]) { color: #135e78; }
 
 .project-shell code,
 .dashboard-main code {
