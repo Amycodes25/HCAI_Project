@@ -22,8 +22,9 @@ PROJECTS = [
     {
         "name": "Project 2: Explainability",
         "description": (
-            "Interpretability and complexity on the Palmer Penguins dataset: "
-            "regularisation trade-off, counterfactuals, PDP and ALE."
+            "Trade off accuracy against model complexity on the Palmer "
+            "Penguins dataset, then read the chosen model through "
+            "counterfactuals and feature effect plots."
         ),
         "url_name": "project2:index",
     },

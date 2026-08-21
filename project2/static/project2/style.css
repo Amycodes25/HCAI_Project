@@ -1,13 +1,213 @@
-/* Colours, type, cards and buttons come from static/theme.css.
-   Only page-specific rules belong here. */
+/* Project 2 - Explainability.
+   Colours, type, cards, buttons and form controls come from static/theme.css.
+   Only what is specific to this page lives here. */
 
-.card ol,
-.card ul {
-    margin: 0;
-    padding-left: 1.15rem;
-    color: var(--theme-muted);
-    font-size: .85rem;
-    line-height: 1.6;
+/* --- Hero ----------------------------------------------------------------- */
+
+.hero-top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-start;
+    justify-content: space-between;
 }
 
-.card li { margin-bottom: .4rem; }
+.hero-top > div:first-child { flex: 1 1 420px; }
+.hero-top > .status-chip { flex: 0 0 auto; }
+
+.status-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: .45rem .8rem;
+    color: rgba(255, 255, 255, .82);
+    border: 1px solid rgba(255, 255, 255, .18);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .08);
+    font-size: .72rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* --- Card headings -------------------------------------------------------- */
+
+.card { margin-top: 1.15rem; }
+
+.card-header { margin-bottom: 1.1rem; }
+
+.card-title-wrapper { display: flex; gap: .85rem; align-items: flex-start; }
+
+.icon-box {
+    display: flex;
+    width: 38px;
+    height: 38px;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    color: var(--theme-white);
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--theme-wisteria), var(--theme-sky));
+    font-size: 1.05rem;
+}
+
+.card-header h2 { margin: 0; color: var(--theme-coffee); font-size: 1.15rem; letter-spacing: -.02em; }
+
+.card-subtitle {
+    max-width: 68ch;
+    margin: .3rem 0 0;
+    color: var(--theme-muted);
+    font-size: .82rem;
+    line-height: 1.55;
+}
+
+.helper-text { margin: .45rem 0 .8rem; color: var(--theme-muted); font-size: .75rem; line-height: 1.5; }
+
+/* --- Controls ------------------------------------------------------------- */
+
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--theme-line);
+    border-radius: 16px;
+    background: var(--theme-surface);
+}
+
+.control { flex: 0 1 200px; }
+.control-wide { flex: 1 1 320px; }
+.control .helper-text { margin-bottom: 0; }
+
+.controls input[type="range"] {
+    width: 100%;
+    height: 6px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--theme-wisteria), var(--theme-sky));
+    appearance: none;
+    cursor: pointer;
+}
+
+.controls input[type="range"]::-webkit-slider-thumb {
+    width: 18px;
+    height: 18px;
+    border: 3px solid var(--theme-white);
+    border-radius: 50%;
+    background: var(--theme-jet);
+    box-shadow: 0 2px 8px rgba(0, 36, 41, .3);
+    appearance: none;
+}
+
+.controls input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border: 3px solid var(--theme-white);
+    border-radius: 50%;
+    background: var(--theme-jet);
+}
+
+.project-shell .button {
+    display: inline-flex;
+    width: auto;
+    min-height: 42px;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: .7rem 1.1rem;
+    color: var(--theme-white);
+    border: 0;
+    border-radius: 12px;
+    background: var(--theme-jet);
+    font-family: inherit;
+    font-size: .78rem;
+    font-weight: 780;
+    cursor: pointer;
+    transition: transform .2s ease, background .2s ease;
+}
+
+.project-shell .button:hover { transform: translateY(-2px); background: var(--theme-coffee); }
+
+/* --- Stats ---------------------------------------------------------------- */
+
+.stats-grid {
+    display: grid;
+    gap: .8rem;
+    margin-top: 1.1rem;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.stat-card {
+    position: relative;
+    overflow: hidden;
+    padding: 1.05rem;
+    border: 1px solid rgba(0, 36, 41, .08);
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(206, 154, 213, .13), rgba(98, 186, 249, .10));
+}
+
+.stat-card::before { content: ""; position: absolute; inset: 0 0 auto; height: 3px; background: var(--theme-wisteria); }
+.stat-card:nth-child(2)::before { background: var(--theme-periwinkle); }
+.stat-card:nth-child(3)::before { background: var(--theme-sky); }
+
+.stat-label { color: var(--theme-muted); font-size: .68rem; font-weight: 780; letter-spacing: .08em; text-transform: uppercase; }
+.stat-value { margin-top: .35rem; color: var(--theme-coffee); font-size: 1.7rem; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
+.stat-value.small { font-size: .9rem; font-weight: 700; letter-spacing: 0; line-height: 1.45; }
+
+/* --- Plots ---------------------------------------------------------------- */
+
+.plot-wrapper {
+    margin-top: 1.1rem;
+    padding: .9rem;
+    overflow-x: auto;
+    border: 1px solid var(--theme-line);
+    border-radius: 16px;
+    background: var(--theme-white);
+    text-align: center;
+}
+
+.plot-wrapper img { max-width: 100%; height: auto; }
+
+/* These two must come after the generic rule above: same specificity, so order
+   decides. A deep tree is genuinely wide, and shrinking it to fit makes the
+   labels unreadable, so let it keep its natural size and scroll instead. */
+.plot-model { text-align: left; }
+.plot-model img { max-width: none; }
+
+.plot-tradeoff img { max-width: min(100%, 620px); }
+
+/* --- Counterfactuals ------------------------------------------------------ */
+
+.cf-layout { display: grid; gap: 1rem; margin-top: 1.1rem; grid-template-columns: minmax(240px, 320px) minmax(0, 1fr); }
+
+.point-panel { padding: 1.1rem; border: 1px solid var(--theme-line); border-radius: 16px; background: var(--theme-surface); }
+.point-panel h3 { margin: 0 0 .3rem; color: var(--theme-coffee); font-size: 1rem; }
+.point-verdict { margin: 0 0 .8rem; color: var(--theme-muted); font-size: .8rem; }
+.point-verdict strong { color: var(--theme-coffee); }
+
+.point-values { margin: 0; display: grid; gap: .35rem; }
+.point-values > div { display: flex; justify-content: space-between; gap: .8rem; padding-bottom: .35rem; border-bottom: 1px solid rgba(0, 36, 41, .07); }
+.point-values dt { color: var(--theme-muted); font-size: .74rem; }
+.point-values dd { margin: 0; color: var(--theme-coffee); font-size: .74rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.cf-results { display: flex; flex-direction: column; gap: .7rem; }
+
+.cf-card { padding: .95rem 1.1rem; border: 1px solid var(--theme-line); border-radius: 16px; background: var(--theme-white); }
+.cf-card header { display: flex; gap: .8rem; align-items: baseline; justify-content: space-between; margin-bottom: .55rem; }
+.cf-card header strong { color: var(--theme-coffee); font-size: .85rem; }
+.cf-distance { color: var(--theme-muted); font-size: .72rem; font-variant-numeric: tabular-nums; }
+
+.cf-card ul { margin: 0; padding: 0; list-style: none; display: grid; gap: .3rem; }
+.cf-card li { display: grid; gap: .5rem; align-items: baseline; grid-template-columns: minmax(120px, 1fr) auto auto auto; font-size: .78rem; }
+.cf-feature { color: var(--theme-muted); }
+.cf-before { color: var(--theme-muted); text-decoration: line-through; font-variant-numeric: tabular-nums; }
+.cf-arrow { color: var(--theme-sky); }
+.cf-after { color: var(--theme-coffee); font-weight: 750; font-variant-numeric: tabular-nums; }
+
+/* --- Footer --------------------------------------------------------------- */
+
+.footer { margin-top: 2.2rem; padding-top: 1.1rem; border-top: 1px solid var(--theme-line); color: var(--theme-muted); font-size: .74rem; }
+
+@media (max-width: 860px) {
+    .cf-layout { grid-template-columns: 1fr; }
+}
