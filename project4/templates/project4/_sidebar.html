@@ -1,0 +1,45 @@
+{% load static %}
+<aside class="dashboard-sidebar" aria-label="Project navigation">
+    <div>
+        <a class="sidebar-up" href="{% url 'home:index' %}">
+            <span aria-hidden="true">&larr;</span> HCAI &middot; Group 29
+        </a>
+
+        <a class="brand" href="{% url 'project4:index' %}">
+            <span class="brand-mark" aria-hidden="true">P&middot;E</span>
+            <span>
+                <strong>Reel Taste</strong>
+                <small>Preference elicitation</small>
+            </span>
+        </a>
+
+        <p class="nav-label">Project workspace</p>
+        <nav class="sidebar-nav">
+            <a href="{% url 'project4:index' %}"
+               {% if active_task == 'overview' %}class="active" aria-current="page"{% endif %}>
+                <span>Overview</span><small>Dashboard</small>
+            </a>
+            <a href="{% url 'project4:features' %}"
+               {% if active_task == 'features' %}class="active" aria-current="page"{% endif %}>
+                <span>Task 1</span><small>Feature representation</small>
+            </a>
+            <a href="{% url 'project4:preference_model' %}"
+               {% if active_task == 'preference_model' %}class="active" aria-current="page"{% endif %}>
+                <span>Task 2</span><small>Preference model</small>
+            </a>
+            <a href="{% url 'project4:study_design' %}"
+               {% if active_task == 'study_design' %}class="active" aria-current="page"{% endif %}>
+                <span>Task 3</span><small>Study design</small>
+            </a>
+            <a href="{% url 'project4:study_consent' %}"
+               {% if active_task == 'study' %}class="active" aria-current="page"{% endif %}>
+                <span>Task 4</span><small>Run the study</small>
+            </a>
+        </nav>
+    </div>
+
+    <div class="sidebar-footer">
+        <p>Human-Centric Artificial Intelligence</p>
+        <strong>Project 4 &middot; Group 29</strong>
+    </div>
+</aside>

@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'project4/style.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <a class="skip-link" href="#project4-content">Skip to content</a>
+
+    {% include 'project4/_sidebar.html' %}
+
+    <main class="dashboard-main" id="project4-content">
+        <div class="dashboard-topbar">
+            <p class="breadcrumb">
+                <a href="{% url 'home:index' %}">Project hub</a> /
+                <a href="{% url 'project4:index' %}">Project 4</a>
+                {% block crumb %}{% endblock %}
+            </p>
+            <div class="topbar-actions">
+                <a class="button-light" href="{% static 'project4/report.pdf' %}" download>Download report</a>
+                <a class="button-dark" href="{% url 'project4:study_consent' %}">Start the study</a>
+            </div>
+        </div>
+
+        {% if not ml_ready %}
+            <div class="status-banner" role="status">
+                <strong>Work in progress.</strong>
+                The interface and the study protocol are in place. The feature
+                representation (Task&nbsp;1) and the preference model (Task&nbsp;2)
+                are not implemented yet, so no preference vector is estimated and
+                the films below are drawn from a small sample file.
+            </div>
+        {% endif %}
+
+        {% block main %}{% endblock %}
+    </main>
+</div>
+{% endblock %}

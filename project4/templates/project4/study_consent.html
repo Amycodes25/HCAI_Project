@@ -1,0 +1,51 @@
+{% extends 'project4/_base_study.html' %}
+{% block study %}
+<div class="study-card">
+    <h1>Before you begin</h1>
+
+    <p class="study-lede">
+        Please read this before taking part. Nothing is recorded until you agree.
+    </p>
+
+    <h2>What the study is about</h2>
+    <p>
+        We are comparing two ways of asking someone about their taste in films.
+        You will use both, in two short blocks.
+    </p>
+
+    <h2>What you will do</h2>
+    <p>
+        In one block you choose between two films. In the other you put ten films
+        in order. It takes around ten minutes in total, with a break in between.
+    </p>
+
+    <h2>What is recorded</h2>
+    <ul>
+        <li>Your answers, and how long each one took.</li>
+        <li>Your responses to a short questionnaire at the end.</li>
+        <li>A random identifier, so answers from one sitting can be grouped together.</li>
+    </ul>
+    <p>
+        We do not record your name, your email address, or anything else that
+        could identify you.
+    </p>
+
+    <h2>Your rights</h2>
+    <ul>
+        <li>Taking part is voluntary. You can stop at any point by closing the page, with no consequences and no need to give a reason.</li>
+        <li>You can ask for your data to be deleted afterwards, using the identifier shown on the final page.</li>
+        <li>The data is used only for this coursework and is not shared.</li>
+    </ul>
+
+    {% if error %}<p class="study-error">{{ error }}</p>{% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <label class="consent-line">
+            <input type="checkbox" name="consent" value="yes">
+            <span>I have read the above, and I agree to take part.</span>
+        </label>
+        <button class="study-button" type="submit">Begin</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends 'project4/_base_study.html' %}
+{% block study_progress %}<span class="study-step">Block {{ stage }} of {{ stages }}</span>{% endblock %}
+{% block study %}
+<div class="study-card">
+    <h1>{% if stage > 1 %}Next block{% else %}How this block works{% endif %}</h1>
+
+    {% if design == 'pairwise' %}
+        <p class="study-lede">
+            You will see two films at a time. Choose the one you would rather
+            watch.
+        </p>
+    {% else %}
+        <p class="study-lede">
+            You will see {{ set_size }} films at a time. Put them in order, from
+            the one you would most like to watch to the one you would least like
+            to watch.
+        </p>
+    {% endif %}
+
+    <ul>
+        <li>There are {{ trials }} of these to get through.</li>
+        <li>There is no right answer. Go with your instinct.</li>
+        <li>If you have not seen a film, judge it on how appealing it looks.</li>
+    </ul>
+
+    {% if stage > 1 %}
+        <p>Take a moment before you carry on if you would like a short break.</p>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <button class="study-button" type="submit">Start</button>
+    </form>
+</div>
+{% endblock %}

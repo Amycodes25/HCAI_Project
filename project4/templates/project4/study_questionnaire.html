@@ -1,0 +1,43 @@
+{% extends 'project4/_base_study.html' %}
+{% block study %}
+<div class="study-card">
+    <h1>Two last questions</h1>
+    <p class="study-lede">Almost done. These take under a minute.</p>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <fieldset class="study-fieldset">
+            <legend>How much effort did each one take?</legend>
+            {% for label in designs %}
+                <label class="scale-row">
+                    <span>{{ label }}</span>
+                    <input type="range" name="effort_{{ forloop.counter }}" min="1" max="7" value="4">
+                    <small>1 = very easy &middot; 7 = very demanding</small>
+                </label>
+            {% endfor %}
+        </fieldset>
+
+        <fieldset class="study-fieldset">
+            <legend>Which felt like a better way to describe your taste?</legend>
+            {% for label in designs %}
+                <label class="radio-row">
+                    <input type="radio" name="preferred" value="{{ forloop.counter }}">
+                    <span>{{ label }}</span>
+                </label>
+            {% endfor %}
+            <label class="radio-row">
+                <input type="radio" name="preferred" value="neither">
+                <span>No difference</span>
+            </label>
+        </fieldset>
+
+        <fieldset class="study-fieldset">
+            <legend>Anything you would like to add? (optional)</legend>
+            <textarea name="comments" rows="3"></textarea>
+        </fieldset>
+
+        <button class="study-button" type="submit">Finish</button>
+    </form>
+</div>
+{% endblock %}

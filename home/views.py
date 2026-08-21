@@ -39,8 +39,8 @@ PROJECTS = [
     {
         "name": "Project 4: Preference Elicitation",
         "description": (
-            "A movie recommender that learns your taste, and a user study "
-            "comparing two ways of asking for your preferences."
+            "Design a study comparing two ways of asking someone what they "
+            "like, and the interface that would run it."
         ),
         "url_name": "project4:index",
     },

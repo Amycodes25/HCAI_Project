@@ -1,0 +1,45 @@
+{% extends 'project4/_base_project.html' %}
+{% block crumb %} / Task 1{% endblock %}
+{% block main %}
+<div class="section-heading">
+    <h2>Task 1 &mdash; Feature representation</h2>
+    <p>
+        Choose a representation for a movie recommender, justify it, and write the
+        method that extracts it from the IMDB 5000 Movie Dataset.
+    </p>
+</div>
+
+<div class="prose-card">
+    <h3>Why this is the whole model</h3>
+    <p>
+        Utility is defined as <em>U(x) = w<sup>T</sup>x</em>. That makes the
+        feature design load-bearing in two directions at once. Anything not
+        expressible as a linear function of <em>x</em> cannot be represented at
+        all &mdash; "likes Wes Anderson films" only exists if something in
+        <em>x</em> carries it. And <em>w</em> has to be identified from a handful
+        of interactions, so a long vector is not estimable no matter how
+        expressive it is. The interesting work is choosing between those.
+    </p>
+
+    <h3>Candidate features</h3>
+    <ul class="pill-list">
+        {% for name in feature_names %}<li>{{ name }}</li>{% endfor %}
+    </ul>
+
+    <h3>Open decisions</h3>
+    <ul>
+        <li>Genre is multi-label, so multi-hot rather than one-hot &mdash; a film can be both.</li>
+        <li>Director and cast are high-cardinality. Frequency buckets, a numeric standing derived from their other films, or dropped entirely?</li>
+        <li>Year as a decade bucket or a scaled number.</li>
+        <li>What dimensionality is actually identifiable from ten comparisons.</li>
+    </ul>
+
+    {% if not is_implemented %}
+        <p class="inline-note">
+            Not implemented yet. The interface currently draws from a sample of
+            {{ n_movies }} films so the participant flow can be built and tested;
+            no features are extracted and no utility is computed.
+        </p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends 'project4/_base_study.html' %}
+{% block study %}
+<div class="study-card">
+    <h1>Thank you</h1>
+
+    <p class="study-lede">
+        That is everything. You gave {{ responses }} responses.
+    </p>
+
+    <h2>What this was actually about</h2>
+    <p>
+        We are comparing two ways of eliciting someone's taste in films. One asks
+        for a single choice between two options; the other asks for a full
+        ranking of ten. A ranking carries far more information per trial, but it
+        also takes longer and asks more of you. The question is which is the
+        better use of a participant's time &mdash; which is why we measured how
+        long each answer took as well as what it was.
+    </p>
+
+    <h2>Your identifier</h2>
+    <p class="participant-id">{{ participant }}</p>
+    <p>
+        Quote this if you would like your responses deleted. It is the only thing
+        linking them together, and we hold nothing else about you.
+    </p>
+
+    <p><a class="study-link" href="{{ report_url }}">Read about the project</a></p>
+</div>
+{% endblock %}

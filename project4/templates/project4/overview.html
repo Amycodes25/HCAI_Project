@@ -1,0 +1,101 @@
+{% extends 'project4/_base_project.html' %}
+{% load static %}
+
+{% block main %}
+<section class="dashboard-hero">
+    <p class="eyebrow">Project 4 &middot; Preference elicitation</p>
+    <h1>How should a recommender ask what you like?</h1>
+    <p class="hero-description">
+        A movie recommender has to learn a new user's taste from a handful of
+        interactions. This project compares two ways of asking: pick one of two
+        films, or rank ten. The deliverable is a rigorous study design and the
+        interface that would run it &mdash; the study itself is not conducted.
+    </p>
+</section>
+
+<article class="action-panel report-panel">
+    <div>
+        <h2>Read the report</h2>
+        <p>
+            The written deliverable: the feature representation and the extended
+            preference model (Tasks&nbsp;1 and&nbsp;2), and the full design of the
+            user study (Task&nbsp;3).
+        </p>
+    </div>
+    <a class="button-light" href="{% static 'project4/report.pdf' %}" download>Download PDF</a>
+</article>
+
+<article class="action-panel">
+    <div>
+        <h2>Take part in the study</h2>
+        <p>
+            The participant's view (Task&nbsp;4). Consent, instructions, practice,
+            both elicitation interfaces in counterbalanced order, a short
+            questionnaire, and a debrief.
+        </p>
+    </div>
+    <a class="button-dark" href="{% url 'project4:study_consent' %}">Start the study</a>
+</article>
+
+<div class="section-heading">
+    <h2>The four tasks</h2>
+    <p>
+        Each page below states what the task asks for, the decision taken, and
+        why. The same material is written up in the PDF.
+    </p>
+</div>
+
+<div class="task-grid">
+    <article class="task-card">
+        <div class="task-card-top">
+            <span class="task-number">Task 1</span>
+            <span class="task-type">Representation</span>
+        </div>
+        <h3>What describes a film</h3>
+        <p>
+            Choosing the feature vector <em>x</em>. Utility is linear, so the
+            features decide what can be learned at all.
+        </p>
+        <a class="card-link" href="{% url 'project4:features' %}">Open Task 1 &rarr;</a>
+    </article>
+
+    <article class="task-card">
+        <div class="task-card-top">
+            <span class="task-number">Task 2</span>
+            <span class="task-type">Model</span>
+        </div>
+        <h3>From pairs to rankings</h3>
+        <p>
+            Bradley&ndash;Terry handles one comparison. Design&nbsp;2 asks for a
+            ranking of ten, which needs an extension.
+        </p>
+        <a class="card-link" href="{% url 'project4:preference_model' %}">Open Task 2 &rarr;</a>
+    </article>
+
+    <article class="task-card">
+        <div class="task-card-top">
+            <span class="task-number">Task 3</span>
+            <span class="task-type">Protocol</span>
+        </div>
+        <h3>The study design</h3>
+        <p>
+            Hypothesis, assignment, measures, recruitment, ethics and the
+            analysis plan &mdash; everything needed to actually run it.
+        </p>
+        <a class="card-link" href="{% url 'project4:study_design' %}">Open Task 3 &rarr;</a>
+    </article>
+
+    <article class="task-card">
+        <div class="task-card-top">
+            <span class="task-number">Task 4</span>
+            <span class="task-type">Interface</span>
+        </div>
+        <h3>What a participant sees</h3>
+        <p>
+            The working interface the study would be run with, from the consent
+            form through to the debrief.
+        </p>
+        <a class="card-link" href="{% url 'project4:study_consent' %}">Start the study &rarr;</a>
+    </article>
+</div>
+{% endblock %}

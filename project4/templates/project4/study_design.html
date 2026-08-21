@@ -1,0 +1,73 @@
+{% extends 'project4/_base_project.html' %}
+{% block crumb %} / Task 3{% endblock %}
+{% block main %}
+<div class="section-heading">
+    <h2>Task 3 &mdash; The user study</h2>
+    <p>
+        A complete protocol for comparing the two elicitation interfaces. The
+        study is designed, not run.
+    </p>
+</div>
+
+<div class="prose-card">
+    <h3>What is being compared, and the trap in it</h3>
+    <p>
+        The two designs are not equally expensive. A pairwise choice yields at
+        most one bit and takes seconds. Ranking ten yields up to
+        log<sub>2</sub>(10!)&nbsp;&asymp;&nbsp;21.8 bits but takes far longer and
+        imposes real cognitive load. So "which elicits <em>w</em> better" is
+        under-specified: <strong>better per what?</strong> Per interaction,
+        ranking wins almost by definition. Per minute of a participant's time, it
+        is a genuine question. Fixing the budget the comparison is normalised by
+        is the central decision in this design.
+    </p>
+
+    <h3>Design at a glance</h3>
+    <div class="table-wrap">
+        <table>
+            <tbody>
+                <tr><th>Type</th><td>Experimental &mdash; the interface is manipulated, participants are randomly assigned</td></tr>
+                <tr><th>Assignment</th><td>Within-subjects: every participant uses both interfaces</td></tr>
+                <tr><th>Why within</th><td>Taste varies enormously between people. Between-subjects would need far more participants to see the interface effect through that variance</td></tr>
+                <tr><th>Order control</th><td>Counterbalanced, alternating across participants, plus practice trials and a break between blocks</td></tr>
+                <tr><th>Trials</th><td>{{ trials_per_condition }} per interface; ranking sets of {{ ranking_set_size }} films</td></tr>
+                <tr><th>Selection</th><td>Uniform at random from the dataset, as the brief permits</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3>Measures</h3>
+    <ul>
+        <li><strong>Primary.</strong> Agreement between the elicited preference and held-out choices by the same participant, per minute of elicitation time.</li>
+        <li><strong>Secondary.</strong> Time per trial; remaining uncertainty about <em>w</em>; agreement of the resulting top-<em>k</em> recommendations.</li>
+        <li><strong>Subjective.</strong> Perceived effort and preference between the two interfaces, from the closing questionnaire.</li>
+    </ul>
+
+    <h3>Ethics and data protection</h3>
+    <ul>
+        <li>Informed consent before anything is recorded; the study cannot be started without it.</li>
+        <li>Only a pseudonymous identifier is stored. No name, no email, no IP.</li>
+        <li>Withdrawal at any point, without giving a reason and without penalty.</li>
+        <li>Data minimisation: only responses and timings, because both are needed for the stated measures.</li>
+        <li>Right to erasure on request, and a route to exercise it.</li>
+        <li>Review by the university ethics board before recruitment.</li>
+    </ul>
+
+    <h3>Analysis plan</h3>
+    <p>
+        Exclusion criteria are fixed <em>before</em> collection: trials more than
+        three standard deviations from the mean response time, participants who
+        answer without variation, and anyone failing the attention check. Then
+        descriptive statistics per condition, a paired test on the primary
+        measure, and a correction for multiple comparisons across the secondary
+        measures.
+    </p>
+
+    <p class="inline-note">
+        Outstanding: a pilot on simulated participants with a known <em>w</em>,
+        which would establish that the estimator recovers it and give an effect
+        size to justify the sample size instead of asserting a round number. That
+        depends on Task&nbsp;2.
+    </p>
+</div>
+{% endblock %}

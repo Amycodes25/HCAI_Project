@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% comment %}
+The participant's shell. Deliberately carries no project navigation: someone
+taking part should see the task, not the coursework around it. Being able to
+read the hypothesis mid-study would be a confound.
+{% endcomment %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'project4/study.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="study-shell">
+    <header class="study-header">
+        <span class="study-mark" aria-hidden="true">P&middot;E</span>
+        <span class="study-title">Movie preference study</span>
+        {% block study_progress %}{% endblock %}
+    </header>
+
+    <main class="study-main">
+        {% block study %}{% endblock %}
+    </main>
+</div>
+{% endblock %}
+
+{% block script %}{% block study_script %}{% endblock %}{% endblock script %}
