@@ -1,4 +1,5 @@
 import base64
+import csv
 from io import BytesIO, StringIO
 
 import matplotlib
@@ -427,20 +428,32 @@ def index(request):
             if not csv_file.name.lower().endswith(".csv"):
                 raise ValueError("Only CSV files are supported.")
 
-            df = pd.read_csv(csv_file)
+            # Read the header separately before pandas gets a chance to
+            # de-duplicate it. read_csv silently renames a repeated column to
+            # "name.1", so checking df.columns afterwards can never detect the
+            # problem, and the interface would then offer the user a column
+            # name their file does not contain.
+            first_line = csv_file.readline().decode("utf-8-sig", errors="replace")
+            csv_file.seek(0)
 
-            if df.empty:
-                raise ValueError("The uploaded CSV file is empty.")
+            header_line = first_line.splitlines()[0] if first_line else ""
+            header = next(csv.reader([header_line]), [])
+            header = [name.strip() for name in header]
 
-            if df.columns.duplicated().any():
-                duplicate_names = df.columns[
-                    df.columns.duplicated()
-                ].tolist()
+            duplicate_names = sorted(
+                {name for name in header if header.count(name) > 1}
+            )
 
+            if duplicate_names:
                 raise ValueError(
                     "The CSV contains duplicate column names: "
                     + ", ".join(map(str, duplicate_names))
                 )
+
+            df = pd.read_csv(csv_file)
+
+            if df.empty:
+                raise ValueError("The uploaded CSV file is empty.")
 
             request.session["data"] = df.to_json(orient="split")
 
