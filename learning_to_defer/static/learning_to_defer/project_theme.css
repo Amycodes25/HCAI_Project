@@ -1,15 +1,6 @@
-:root {
-    --theme-coffee: #100409;
-    --theme-wisteria: #ce9ad5;
-    --theme-periwinkle: #9999d6;
-    --theme-sky: #62baf9;
-    --theme-jet: #002429;
-    --theme-surface: #f4f8ff;
-    --theme-white: #ffffff;
-    --theme-muted: #58686e;
-    --theme-line: rgba(0, 36, 41, .12);
-    --theme-shadow: 0 18px 45px rgba(16, 4, 9, .08);
-}
+/* Project 3 theme. The --theme-* tokens come from static/theme.css, which
+   every page loads before this file; they were duplicated here with
+   identical values until that was consolidated. */
 
 * { box-sizing: border-box; }
 body {

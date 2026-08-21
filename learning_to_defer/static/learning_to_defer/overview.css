@@ -1,14 +1,17 @@
+/* This file's own token names, aliased to the shared palette in theme.css
+   rather than repeating its values, so the two cannot drift apart. The two
+   greys and the shadow were very slightly different and are unified here. */
 :root {
-    --plum: #100409;
-    --ink: #002429;
-    --lavender: #ce9ad5;
-    --periwinkle: #9999d6;
-    --sky: #62baf9;
-    --ice: #f4f8ff;
-    --white: #ffffff;
-    --muted: #53656b;
-    --line: rgba(32, 9, 18, 0.12);
-    --shadow: 0 18px 50px rgba(32, 9, 18, 0.08);
+    --plum: var(--theme-coffee);
+    --ink: var(--theme-jet);
+    --lavender: var(--theme-wisteria);
+    --periwinkle: var(--theme-periwinkle);
+    --sky: var(--theme-sky);
+    --ice: var(--theme-surface);
+    --white: var(--theme-white);
+    --muted: var(--theme-muted);
+    --line: var(--theme-line);
+    --shadow: var(--theme-shadow);
 }
 
 * { box-sizing: border-box; }
