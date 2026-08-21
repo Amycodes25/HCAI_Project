@@ -16,6 +16,11 @@
     justify-content: space-between;
 }
 
+/* Let the title block take the room it needs and keep the chip opposite it,
+   until there is no longer space for both on one line. */
+.hero-top > div:first-child { flex: 1 1 420px; }
+.hero-top > .status-chip { flex: 0 0 auto; }
+
 .badge {
     display: inline-block;
     margin-bottom: .7rem;
