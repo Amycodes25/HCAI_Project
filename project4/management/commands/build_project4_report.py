@@ -277,12 +277,19 @@ class Command(BaseCommand):
                 ["Other controls", "Practice trials before each block, and a break between blocks. "
                                    "Films are drawn uniformly at random from the dataset."],
                 ["Trials", "Eight per interface; ranking sets of ten films."],
+                ["Validation", "Six further pairwise choices at the end, never used to fit w. "
+                               "They are what makes the primary measure computable: a preference "
+                               "vector fitted from one interface is scored on choices it has not "
+                               "seen. Without them the design would name a measure the interface "
+                               "could not produce."],
             ]),
 
             Paragraph("3.3 &nbsp; Measures", s["h2"]),
             bullets([
-                "<b>Primary.</b> Agreement between the elicited preference and held-out choices "
-                "by the same participant, per minute of elicitation time.",
+                "<b>Primary.</b> The share of the held-out choices that a preference vector "
+                "fitted from one interface alone predicts correctly, divided by the minutes that "
+                "interface consumed. Both interfaces are scored against the same held-out block, "
+                "so they are compared on equal terms.",
                 "<b>Secondary.</b> Time per trial; the remaining uncertainty about w; agreement "
                 "of the resulting top-k recommendations between the two designs.",
                 "<b>Subjective.</b> Perceived effort per interface, and which the participant "

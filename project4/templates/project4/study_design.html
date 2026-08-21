@@ -31,6 +31,7 @@
                 <tr><th>Why within</th><td>Taste varies enormously between people. Between-subjects would need far more participants to see the interface effect through that variance</td></tr>
                 <tr><th>Order control</th><td>Counterbalanced, alternating across participants, plus practice trials and a break between blocks</td></tr>
                 <tr><th>Trials</th><td>{{ trials_per_condition }} per interface; ranking sets of {{ ranking_set_size }} films</td></tr>
+                <tr><th>Validation</th><td>{{ validation_trials }} further pairwise choices at the end, never used to fit <em>w</em>. Without them the study could not compute its own primary measure</td></tr>
                 <tr><th>Selection</th><td>Uniform at random from the dataset, as the brief permits</td></tr>
             </tbody>
         </table>
@@ -38,7 +39,7 @@
 
     <h3>Measures</h3>
     <ul>
-        <li><strong>Primary.</strong> Agreement between the elicited preference and held-out choices by the same participant, per minute of elicitation time.</li>
+        <li><strong>Primary.</strong> The share of the held-out choices that a preference vector, fitted from one interface alone, predicts correctly &mdash; divided by the minutes that interface consumed. Both interfaces are scored against the same held-out block, so they are compared on equal terms.</li>
         <li><strong>Secondary.</strong> Time per trial; remaining uncertainty about <em>w</em>; agreement of the resulting top-<em>k</em> recommendations.</li>
         <li><strong>Subjective.</strong> Perceived effort and preference between the two interfaces, from the closing questionnaire.</li>
     </ul>

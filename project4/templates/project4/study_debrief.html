@@ -17,6 +17,39 @@
         long each answer took as well as what it was.
     </p>
 
+    {% if per_design %}
+        <h2>How well each way of asking worked</h2>
+        <p>
+            Your last {{ validation_trials }} choices were held back and never
+            used to build the estimates. Each row below is a preference vector
+            built from one interface alone, scored on how many of those held-out
+            choices it predicts. That is what the study is really comparing
+            &mdash; and per minute of your time, not per question.
+        </p>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>Interface</th><th>Time</th><th>Held-out agreement</th><th>Per minute</th></tr>
+                </thead>
+                <tbody>
+                    {% for row in per_design %}
+                        <tr>
+                            <td>{{ row.label }}</td>
+                            <td>{{ row.seconds }}s</td>
+                            <td>{{ row.agreement|default:"&ndash;" }}</td>
+                            <td>{{ row.per_minute|default:"&ndash;" }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <p class="study-small">
+            With one participant and {{ validation_trials }} held-out choices these
+            numbers are far too noisy to mean anything on their own. Answering that
+            question is what the full study, across many participants, is for.
+        </p>
+    {% endif %}
+
     {% if recommendations %}
         <h2>What we estimated from your answers</h2>
         <p>

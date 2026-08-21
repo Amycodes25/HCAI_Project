@@ -2,9 +2,14 @@
 {% block study_progress %}<span class="study-step">Block {{ stage }} of {{ stages }}</span>{% endblock %}
 {% block study %}
 <div class="study-card">
-    <h1>{% if stage > 1 %}Next block{% else %}How this block works{% endif %}</h1>
+    <h1>{% if is_validation %}Nearly finished{% elif stage > 1 %}Next block{% else %}How this block works{% endif %}</h1>
 
-    {% if design == 'pairwise' %}
+    {% if is_validation %}
+        <p class="study-lede">
+            One last short block. Two films at a time again &mdash; choose the one
+            you would rather watch.
+        </p>
+    {% elif design != 'ranking' %}
         <p class="study-lede">
             You will see two films at a time. Choose the one you would rather
             watch.

@@ -18,7 +18,7 @@
     <input type="hidden" name="shown" value="{% for movie in movies %}{{ movie.index }}{% if not forloop.last %},{% endif %}{% endfor %}">
     <input type="hidden" name="elapsed_ms" id="elapsed_ms">
 
-    {% if design == 'pairwise' %}
+    {% if design != 'ranking' %}
         <h1 class="study-question">Which would you rather watch?</h1>
         <div class="choice-pair">
             {% for movie in movies %}

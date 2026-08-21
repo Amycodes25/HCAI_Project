@@ -219,3 +219,10 @@
 .weight-list li { display: flex; justify-content: space-between; gap: 1rem; padding: .4rem .7rem; border: 1px solid var(--theme-line); border-radius: 10px; background: var(--theme-surface); }
 .weight-list span { color: var(--theme-muted); font-size: .8rem; }
 .weight-list code { color: var(--theme-coffee); font-family: "IBM Plex Mono", monospace; font-size: .78rem; font-variant-numeric: tabular-nums; }
+
+.study-card .table-wrap { margin: 0 0 1.2rem; overflow-x: auto; border: 1px solid var(--theme-line); border-radius: 12px; }
+.study-card .table-wrap table { width: 100%; border-collapse: collapse; background: var(--theme-white); }
+.study-card .table-wrap th { padding: .55rem .8rem; color: var(--theme-white); background: var(--theme-jet); font-size: .68rem; font-weight: 750; letter-spacing: .05em; text-align: left; text-transform: uppercase; }
+.study-card .table-wrap td { padding: .55rem .8rem; border-bottom: 1px solid rgba(0,36,41,.08); color: #233b3f; font-size: .8rem; font-variant-numeric: tabular-nums; }
+.study-card .table-wrap tr:last-child td { border-bottom: none; }
+.study-small { color: var(--theme-muted) !important; font-size: .78rem !important; }

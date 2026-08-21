@@ -9,6 +9,7 @@ import numpy as np
 from django.test import TestCase
 from django.urls import reverse
 
+from . import views
 from .ml import features, preference
 from .models import StudySession
 
@@ -223,7 +224,8 @@ class ParticipantFlow(TestCase):
             self._answer_trial(response)
             answered += 1
 
-        self.assertEqual(answered, 16)  # 8 trials, both interfaces
+        # 8 trials per interface, plus the 6 held-out validation trials.
+        self.assertEqual(answered, 2 * views.TRIALS_PER_CONDITION + views.VALIDATION_TRIALS)
 
         self.client.post(reverse("project4:study_questionnaire"),
                          {"effort_1": "3", "effort_2": "5", "preferred": "1"})
@@ -237,7 +239,7 @@ class ParticipantFlow(TestCase):
     def test_refreshing_the_trial_page_after_finishing_moves_on(self):
         self.start()
         session_data = self.client.session["project4"]
-        session_data["stage"] = 2  # both blocks done
+        session_data["stage"] = len(session_data["order"])  # every block done
         self.client.session["project4"] = session_data
         session = self.client.session
         session["project4"] = session_data
@@ -246,6 +248,52 @@ class ParticipantFlow(TestCase):
         response = self.client.get(reverse("project4:study_task"))
         self.assertRedirects(response, reverse("project4:study_questionnaire"),
                              fetch_redirect_response=False)
+
+    def test_validation_block_runs_last_and_is_pairwise(self):
+        """The held-out block is what makes the primary measure computable."""
+        self.start()
+        order = self.client.session["project4"]["order"]
+        self.assertEqual(order[-1], views.VALIDATION)
+        self.assertEqual(len(order), 3)
+
+    def test_validation_answers_are_excluded_from_the_fit(self):
+        self.start()
+        self.client.post(reverse("project4:study_instructions"), {})
+        for _ in range(40):
+            response = self.client.get(reverse("project4:study_task"))
+            if response.status_code == 302:
+                if "questionnaire" in response["Location"]:
+                    break
+                self.client.post(reverse("project4:study_instructions"), {})
+                continue
+            self._answer_trial(response)
+
+        responses = self.client.session["project4"]["responses"]
+        held_out = [r for r in responses if r["design"] == views.VALIDATION]
+        self.assertEqual(len(held_out), views.VALIDATION_TRIALS)
+        # Every held-out trial is a pairwise choice, so it can score any estimate.
+        for response in held_out:
+            self.assertEqual(len(response["ordering"]), 2)
+
+    def test_debrief_reports_the_primary_measure_per_interface(self):
+        self.start()
+        self.client.post(reverse("project4:study_instructions"), {})
+        for _ in range(40):
+            response = self.client.get(reverse("project4:study_task"))
+            if response.status_code == 302:
+                if "questionnaire" in response["Location"]:
+                    break
+                self.client.post(reverse("project4:study_instructions"), {})
+                continue
+            self._answer_trial(response)
+        self.client.post(reverse("project4:study_questionnaire"), {"preferred": "1"})
+
+        response = self.client.get(reverse("project4:study_debrief"))
+        self.assertContains(response, "Held-out agreement")
+        # One row per elicitation interface, not for the validation block.
+        self.assertEqual(len(response.context["per_design"]), 2)
+        for row in response.context["per_design"]:
+            self.assertIsNotNone(row["agreement"])
 
     def test_debrief_clears_the_session(self):
         self.start()

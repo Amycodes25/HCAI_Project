@@ -46,6 +46,14 @@ DESIGN_LABELS = {
 TRIALS_PER_CONDITION = 8
 RANKING_SET_SIZE = 10
 
+# A short block of pairwise comparisons after both elicitation blocks. These are
+# never used to fit w. They exist so the study can compute its own primary
+# measure: how well a preference estimated from one interface predicts choices
+# the estimate has not seen. Without them the design names a measure the
+# interface cannot produce.
+VALIDATION_TRIALS = 6
+VALIDATION = "validation"
+
 
 # --------------------------------------------------------------------------
 # Project pages
@@ -86,6 +94,7 @@ def task_study_design(request):
     context.update({
         "trials_per_condition": TRIALS_PER_CONDITION,
         "ranking_set_size": RANKING_SET_SIZE,
+        "validation_trials": VALIDATION_TRIALS,
     })
     return render(request, "project4/study_design.html", context)
 
@@ -121,7 +130,8 @@ def study_consent(request):
 
         state = {
             "participant": participant,
-            "order": session.condition_order,
+            # The two elicitation blocks, then the held-out validation block.
+            "order": list(session.condition_order) + [VALIDATION],
             "stage": 0,
             "trial": 0,
             "responses": [],
@@ -162,10 +172,10 @@ def study_instructions(request):
     design = state["order"][state["stage"]]
     return render(request, "project4/study_instructions.html", {
         "design": design,
-        "design_label": DESIGN_LABELS[design],
+        "is_validation": design == VALIDATION,
         "stage": state["stage"] + 1,
         "stages": len(state["order"]),
-        "trials": TRIALS_PER_CONDITION,
+        "trials": VALIDATION_TRIALS if design == VALIDATION else TRIALS_PER_CONDITION,
         "set_size": RANKING_SET_SIZE,
     })
 
@@ -180,7 +190,7 @@ def _read_ordering(request, design):
         int(value) for value in request.POST.get("shown", "").split(",") if value.strip()
     ]
 
-    if design == PAIRWISE:
+    if design in (PAIRWISE, VALIDATION):
         try:
             chosen = int(request.POST.get("chosen", ""))
         except (TypeError, ValueError):
@@ -228,7 +238,8 @@ def study_task(request):
         })
         state["trial"] += 1
 
-        if state["trial"] >= TRIALS_PER_CONDITION:
+        limit = VALIDATION_TRIALS if design == VALIDATION else TRIALS_PER_CONDITION
+        if state["trial"] >= limit:
             state["trial"] = 0
             state["stage"] += 1
             _save(request, state)
@@ -239,15 +250,17 @@ def study_task(request):
         _save(request, state)
         return redirect("project4:study_task")
 
-    size = 2 if design == PAIRWISE else RANKING_SET_SIZE
+    size = RANKING_SET_SIZE if design == RANKING else 2
     movies = features.sample_movies(size, seed=(state["stage"], state["trial"]))
+    limit = VALIDATION_TRIALS if design == VALIDATION else TRIALS_PER_CONDITION
 
     return render(request, "project4/study_task.html", {
         "design": design,
+        "is_validation": design == VALIDATION,
         "movies": movies,
         "trial": state["trial"] + 1,
-        "trials": TRIALS_PER_CONDITION,
-        "progress": round(100 * state["trial"] / TRIALS_PER_CONDITION),
+        "trials": limit,
+        "progress": round(100 * state["trial"] / limit),
         "stage": state["stage"] + 1,
         "stages": len(state["order"]),
     })
@@ -277,18 +290,61 @@ def study_debrief(request):
 
     responses = state.get("responses", [])
 
-    # The purpose of the elicitation is to estimate w, so it is estimated here,
-    # from every response the participant gave. Both interfaces feed the same
-    # estimator: a pairwise choice is a ranking of length two.
-    rankings = [
-        features.movie_rows(response["ordering"])
-        for response in responses
-        if len(response.get("ordering", [])) >= 2
-    ]
-    w = preference.fit(rankings, features.n_features())
+    elicitation = [r for r in responses if r["design"] != VALIDATION]
+    validation = [r for r in responses if r["design"] == VALIDATION]
+
+    def rankings_for(rows):
+        return [
+            features.movie_rows(r["ordering"])
+            for r in rows if len(r.get("ordering", [])) >= 2
+        ]
+
+    def seconds(rows):
+        total = 0.0
+        for r in rows:
+            try:
+                total += float(r.get("milliseconds") or 0) / 1000.0
+            except (TypeError, ValueError):
+                pass
+        return total
+
+    def agreement(w):
+        """Share of held-out pairwise choices this estimate predicts correctly.
+
+        This is the study's primary measure. The validation block is never used
+        to fit w, so it is a fair test of what an interface actually revealed.
+        """
+        if not validation:
+            return None
+        correct = 0
+        for r in validation:
+            rows = features.movie_rows(r["ordering"])
+            correct += int(preference.utilities(rows, w)[0] >= preference.utilities(rows, w)[1])
+        return correct / len(validation)
+
+    # One estimate per interface, so the two can be compared on equal terms.
+    per_design = []
+    for name in state["order"]:
+        if name == VALIDATION:
+            continue
+        rows = [r for r in elicitation if r["design"] == name]
+        w_design = preference.fit(rankings_for(rows), features.n_features())
+        score = agreement(w_design)
+        spent = seconds(rows)
+        per_design.append({
+            "label": DESIGN_LABELS[name],
+            "trials": len(rows),
+            "seconds": f"{spent:.0f}",
+            "agreement": None if score is None else f"{score:.0%}",
+            "per_minute": (None if score is None or spent == 0
+                           else f"{score / (spent / 60):.2f}"),
+        })
+
+    # And one estimate from everything, for the recommendations shown below.
+    w = preference.fit(rankings_for(elicitation), features.n_features())
 
     top = []
-    if rankings:
+    if elicitation:
         X = features.design_matrix()
         for index in preference.rank_items(X, w)[:5]:
             top.append(features.describe(int(index)))
@@ -308,6 +364,8 @@ def study_debrief(request):
         "responses": len(responses),
         "recommendations": top,
         "n_movies": features.movie_count(),
+        "per_design": per_design,
+        "validation_trials": len(validation),
         "weights": [(name, f"{value:+.2f}") for name, value in weights],
         "report_url": reverse("project4:index"),
     }
