@@ -15,6 +15,8 @@ import io
 from django.test import TestCase
 from django.urls import reverse
 
+from .models import Dataset, ModelResult, TrainingRun
+
 IRIS = b"""SepalLengthCm,SepalWidthCm,PetalLengthCm,PetalWidthCm,Species
 5.1,3.5,1.4,0.2,setosa
 4.9,3.0,1.4,0.2,setosa
@@ -132,6 +134,68 @@ class Upload(Project1Base):
         self.upload()
         response = self.client.post(self.url, {"action": "reset"})
         self.assertNotIn("row_count", response.context)
+
+
+class Persistence(Project1Base):
+    """The brief suggests Django models once several algorithms are offered."""
+
+    def test_upload_records_the_dataset(self):
+        self.upload(name="iris.csv")
+        dataset = Dataset.objects.get()
+        self.assertEqual(dataset.filename, "iris.csv")
+        self.assertEqual(dataset.n_rows, 18)
+        self.assertEqual(dataset.n_columns, 5)
+        self.assertIn("Species", dataset.column_names)
+
+    def test_uploaded_rows_are_not_stored(self):
+        """Only metadata is kept; the data itself stays in the session."""
+        self.upload()
+        stored = " ".join(str(v) for v in Dataset.objects.get().__dict__.values())
+        self.assertNotIn("5.1", stored)
+
+    def test_training_records_a_run_and_every_result(self):
+        self.upload()
+        self.client.post(self.url, {
+            "action": "train", "target": "Species",
+            "model_name": "knn", "test_size": "0.3",
+        })
+        run = TrainingRun.objects.get()
+        self.assertEqual(run.algorithm, "knn")
+        self.assertEqual(run.dataset, Dataset.objects.get())
+        self.assertEqual(run.best_score, max(r.score for r in run.results.all()))
+        self.assertEqual(ModelResult.objects.count(), run.results.count())
+        self.assertGreater(run.results.count(), 1)
+
+    def test_runs_accumulate_so_families_can_be_compared(self):
+        self.upload()
+        for model in ("tree", "knn", "logistic"):
+            self.client.post(self.url, {
+                "action": "train", "target": "Species",
+                "model_name": model, "test_size": "0.3",
+            })
+        response = self.client.get(self.url)
+        self.assertEqual(len(response.context["previous_runs"]), 3)
+        self.assertContains(response, "Everything tried on this dataset")
+
+    def test_history_is_scoped_to_the_current_dataset(self):
+        self.upload(name="first.csv")
+        self.client.post(self.url, {
+            "action": "train", "target": "Species",
+            "model_name": "tree", "test_size": "0.3",
+        })
+        self.upload(name="second.csv")
+        response = self.client.get(self.url)
+        self.assertEqual(response.context["previous_runs"], [])
+
+    def test_deleting_a_dataset_takes_its_runs_with_it(self):
+        self.upload()
+        self.client.post(self.url, {
+            "action": "train", "target": "Species",
+            "model_name": "tree", "test_size": "0.3",
+        })
+        Dataset.objects.get().delete()
+        self.assertEqual(TrainingRun.objects.count(), 0)
+        self.assertEqual(ModelResult.objects.count(), 0)
 
 
 class Visualisation(Project1Base):

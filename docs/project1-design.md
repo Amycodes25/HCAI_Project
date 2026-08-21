@@ -46,12 +46,27 @@ One URL and one view, with the action carried in a hidden field. The four
 actions — upload, plot, train, reset — share the uploaded dataset held in the
 session, and each renders the same page with more of it filled in.
 
-The alternative considered was a URL per step, with `Dataset`, `TrainingRun`
-and `ModelResult` persisted so that a run could be linked to and runs compared.
-That is the better structure for an app that outlives a session; it was not
-adopted because nothing in the brief needs a run to survive one, and the cost
-is a larger surface for no user-visible gain. The consequence is accepted
-knowingly: a trained run has no address, and a refresh re-submits.
+`Dataset`, `TrainingRun` and `ModelResult` **are** persisted, which the brief
+points at: "If you decide to implement several learning algorithms, you might
+have to define django models for the algorithms and the variables." Three
+families are offered, so they are defined.
+
+They earn their place beyond answering the hint. Without them a sweep existed
+only for the response that produced it, so a user could compare configurations
+*within* one sweep but never two sweeps against each other — and comparing a
+decision tree against k-nearest neighbours on the same data is the question the
+interface exists to help with. Every run is now kept against its dataset and
+listed under "Everything tried on this dataset".
+
+Only metadata is stored. The uploaded rows stay in the session and never reach
+the database: the app has no use for them after the request, and keeping
+someone's data longer than the task requires would be poor practice in a course
+about human-centric systems.
+
+What was *not* adopted is a URL per step. A trained run still has no address and
+a refresh still re-submits. Persisting the results was worth it; restructuring
+the navigation around them was not, for an app that is one pipeline read top to
+bottom.
 
 Forms are posted with `fetch` and the page is swapped in place, so an action
 does not throw the page away — but they remain ordinary POST forms and work
@@ -73,3 +88,7 @@ without JavaScript.
   its docstring now says so rather than claiming to be the source of truth.
 - Feature importance is not shown. It was on the original wish list; it is
   genuinely useful and simply was not reached.
+- Figures are inlined as base64 data URIs rather than written to `media/` and
+  loaded back, which is the route the brief describes (the `demos` app shows
+  it). The reason is that the media route accumulates one file per request with
+  nothing to clean them up. Project 2 does the same, so the two agree.

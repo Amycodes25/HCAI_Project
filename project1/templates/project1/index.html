@@ -561,6 +561,52 @@
         </section>
     {% endif %}
 
+            {% if previous_runs %}
+
+    <section class="card" id="section-history">
+        <div class="card-header">
+            <div class="card-title-wrapper">
+                <div class="icon-box">&#8635;</div>
+                <div>
+                    <h2>Everything tried on this dataset</h2>
+                    <p class="card-subtitle">
+                        Each sweep is kept, so model families can be compared with
+                        one another and not only within a single sweep. Scores are
+                        comparable only where the score and the split match.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Model</th>
+                                    <th>Best setting</th>
+                                    <th>Target</th>
+                                    <th>Score</th>
+                                    <th>Split</th>
+                                    <th>Result</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for run in previous_runs %}
+                                    <tr {% if forloop.first %}class="best-row"{% endif %}>
+                                        <td>{{ run.algorithm_label }}</td>
+                                        <td>{{ run.parameter_name }} = {{ run.best_parameter }}</td>
+                                        <td>{{ run.target }}</td>
+                                        <td>{{ run.score_label }}</td>
+                                        <td>{{ run.training_rows }}/{{ run.testing_rows }}</td>
+                                        <td>{{ run.best_score }}%</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+    </section>
+{% endif %}
+
     <div class="footer">
         HCAI Project 1 · Supervised Learning Interface
     </div>

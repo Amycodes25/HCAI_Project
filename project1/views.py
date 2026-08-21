@@ -12,6 +12,8 @@ import pandas as pd
 
 from django.shortcuts import render
 
+from .models import Dataset, ModelResult, TrainingRun
+
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
@@ -518,6 +520,7 @@ def index(request):
     if request.method == "POST" and request.POST.get("action") == "reset":
         request.session.pop("data", None)
         request.session.pop("data_filename", None)
+        request.session.pop("dataset_id", None)
         request.session.modified = True
         return render(request, "project1/index.html", context)
 
@@ -571,6 +574,14 @@ def index(request):
             # which dataset is loaded and looks as though nothing happened.
             request.session["data_filename"] = csv_file.name
 
+            dataset = Dataset.objects.create(
+                filename=csv_file.name,
+                n_rows=len(df),
+                n_columns=len(df.columns),
+                column_names=[str(c) for c in df.columns],
+            )
+            request.session["dataset_id"] = dataset.pk
+
         else:
             df = load_dataframe_from_session(request)
 
@@ -578,6 +589,14 @@ def index(request):
         # PREPARE DATASET INFORMATION
         # =========================================================
         if df is not None:
+            # Every sweep run against this dataset, so two model families can be
+            # compared with each other and not only within one sweep.
+            context["previous_runs"] = list(
+                TrainingRun.objects.filter(
+                    dataset_id=request.session.get("dataset_id")
+                ).select_related("dataset")[:12]
+            )
+
             available_columns = get_available_columns(df)
 
             if not available_columns:
@@ -763,6 +782,34 @@ def index(request):
             context["confusion_plot"] = create_confusion_matrix_plot(
                 y_test, best_pipeline.predict(X_test), class_labels
             )
+
+            dataset = Dataset.objects.filter(
+                pk=request.session.get("dataset_id")
+            ).first()
+
+            if dataset is not None:
+                run = TrainingRun.objects.create(
+                    dataset=dataset,
+                    algorithm=model_name,
+                    algorithm_label=MODEL_SPECS[model_name]["label"],
+                    parameter_name=evaluation["parameter_name"],
+                    target=target,
+                    test_size=test_size,
+                    score_name=score_name,
+                    score_label=SCORERS[score_name]["label"],
+                    best_parameter=str(evaluation["best_parameter"]),
+                    best_score=evaluation["best_accuracy"],
+                    training_rows=len(X_train),
+                    testing_rows=len(X_test),
+                )
+                ModelResult.objects.bulk_create([
+                    ModelResult(
+                        run=run,
+                        parameter_value=str(row["parameter"]),
+                        score=row["accuracy"],
+                    )
+                    for row in evaluation["results"]
+                ])
 
             context["selected_model"] = MODEL_SPECS[model_name]["label"]
             context["selected_model_value"] = model_name
