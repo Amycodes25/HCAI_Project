@@ -38,10 +38,15 @@ MODEL = "model"
 COUNTERFACTUALS = "counterfactuals"
 EFFECTS = "effects"
 
+# The sidebar shows the current selection, so it has to refresh with the rest or
+# it quietly reports a model that is no longer on screen.
+SIDEBAR = "sidebar"
+
 PARTIALS = {
     MODEL: "project2/_model.html",
     COUNTERFACTUALS: "project2/_counterfactuals.html",
     EFFECTS: "project2/_effects.html",
+    SIDEBAR: "project2/_sidebar.html",
 }
 
 
@@ -221,6 +226,12 @@ def index(request):
             MODEL: lambda: _model_context(bundle, state),
             COUNTERFACTUALS: lambda: _counterfactual_context(request, bundle, state),
             EFFECTS: lambda: _effects_context(bundle, state),
+            # The sidebar reports across all three, so it needs the lot.
+            SIDEBAR: lambda: {
+                **_model_context(bundle, state),
+                **_counterfactual_context(request, bundle, state),
+                **_effects_context(bundle, state),
+            },
         }[requested]
         context = {**base, **builder()}
         return render(request, PARTIALS[requested], context)

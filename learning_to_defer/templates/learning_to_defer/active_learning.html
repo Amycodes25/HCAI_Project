@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 {% load static %}
+{% load assets %}
 
 {% block extra_css %}
 <link
     rel="stylesheet"
-    href="{% static 'learning_to_defer/style.css' %}"
+    href="{% vstatic 'learning_to_defer/style.css' %}"
 >
-<link rel="stylesheet" href="{% static 'learning_to_defer/project_theme.css' %}">
+<link rel="stylesheet" href="{% vstatic 'learning_to_defer/project_theme.css' %}">
 {% endblock %}
 
 {% block content %}

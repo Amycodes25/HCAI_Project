@@ -1,5 +1,6 @@
 {% extends 'project4/_base_study.html' %}
 {% load static %}
+{% load assets %}
 {% block study_progress %}
     <span class="study-step">Block {{ stage }} of {{ stages }} &middot; {{ trial }} of {{ trials }}</span>
 {% endblock %}
@@ -61,5 +62,5 @@
 {% endblock %}
 
 {% block study_script %}
-<script src="{% static 'project4/study.js' %}" defer></script>
+<script src="{% vstatic 'project4/study.js' %}" defer></script>
 {% endblock %}

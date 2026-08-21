@@ -1,9 +1,10 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load assets %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'dashboard.css' %}">
-    <link rel="stylesheet" href="{% static 'project4/style.css' %}">
+    <link rel="stylesheet" href="{% vstatic 'dashboard.css' %}">
+    <link rel="stylesheet" href="{% vstatic 'project4/style.css' %}">
 {% endblock %}
 
 {% block content %}

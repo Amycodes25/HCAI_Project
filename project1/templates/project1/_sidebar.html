@@ -1,0 +1,50 @@
+<aside class="dashboard-sidebar" aria-label="Project navigation">
+    <div>
+        <a class="sidebar-up" href="{% url 'home:index' %}">
+            <span aria-hidden="true">&larr;</span> HCAI &middot; Group 29
+        </a>
+
+        <a class="brand" href="{% url 'project1:index' %}">
+            <span class="brand-mark" aria-hidden="true">S&middot;L</span>
+            <span>
+                <strong>ML Studio</strong>
+                <small>Supervised learning</small>
+            </span>
+        </a>
+
+        {% comment %}
+        These scroll within the page rather than linking to separate URLs.
+        Project 1 is one pipeline whose steps only make sense with the previous
+        one still on screen, so the sidebar tracks progress through it instead of
+        splitting it up. A step is marked done once its output exists.
+        {% endcomment %}
+        <p class="nav-label">Pipeline</p>
+        <nav class="sidebar-nav">
+            <a class="anchor-step done" href="#section-upload">
+                <span class="step-number">1</span>
+                <span>Upload<small>CSV in</small></span>
+            </a>
+            <a class="anchor-step {% if row_count %}done{% endif %}" href="#section-overview">
+                <span class="step-number">2</span>
+                <span>Overview<small>{% if row_count %}{{ row_count }} rows{% else %}awaiting data{% endif %}</small></span>
+            </a>
+            <a class="anchor-step {% if scatter_plot %}done{% endif %}" href="#section-explorer">
+                <span class="step-number">3</span>
+                <span>Explore<small>{% if scatter_plot %}plotted{% else %}scatter plot{% endif %}</small></span>
+            </a>
+            <a class="anchor-step {% if hyperparameter_results %}done{% endif %}" href="#section-configure">
+                <span class="step-number">4</span>
+                <span>Configure<small>model and score</small></span>
+            </a>
+            <a class="anchor-step {% if hyperparameter_results %}done{% endif %}" href="#section-evaluation">
+                <span class="step-number">5</span>
+                <span>Results<small>{% if best_accuracy %}best {{ best_accuracy }}%{% else %}not trained{% endif %}</small></span>
+            </a>
+        </nav>
+    </div>
+
+    <div class="sidebar-footer">
+        <p>Human-Centric Artificial Intelligence</p>
+        <strong>Project 1 &middot; Group 29</strong>
+    </div>
+</aside>

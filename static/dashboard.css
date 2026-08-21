@@ -313,3 +313,43 @@
     .dashboard-sidebar > div:first-child { display: grid; gap: 1rem; }
     .dashboard-main { padding-top: 1.2rem; }
 }
+
+/* --- Anchor sidebars --------------------------------------------------------
+   Projects 3 and 4 have genuinely separate pages, so their sidebars are links
+   to URLs. Projects 1 and 2 are single workflows -- Project 1 is one pipeline
+   whose steps only make sense together, and Project 2's brief requires its
+   regions to stay tied to one model selection -- so their sidebars scroll
+   within the page instead. Same shell, same navigation, nothing split that
+   should not be. */
+
+.dashboard-main { scroll-behavior: smooth; }
+
+.sidebar-nav a.anchor-step { display: grid; grid-template-columns: 22px 1fr; gap: .55rem; align-items: center; }
+
+.sidebar-nav a.anchor-step .step-number {
+    display: flex;
+    width: 22px;
+    height: 22px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(244, 248, 255, .25);
+    border-radius: 7px;
+    font-size: .64rem;
+    font-weight: 800;
+}
+
+.sidebar-nav a.anchor-step.done .step-number {
+    color: var(--theme-coffee);
+    border-color: transparent;
+    background: var(--theme-sky);
+}
+
+.sidebar-nav a.anchor-step.done span:not(.step-number) { color: var(--theme-white); }
+
+/* Anchored sections need clearance so a heading does not land under the top of
+   the viewport when jumped to. */
+[id^="section-"] { scroll-margin-top: 1.2rem; }
+
+@media (prefers-reduced-motion: reduce) {
+    .dashboard-main { scroll-behavior: auto; }
+}

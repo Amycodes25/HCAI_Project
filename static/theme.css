@@ -47,7 +47,8 @@ div { font-family: inherit; }
    this project scrolls instead, so that wrapper is neutralised too. */
 .grid-parent { display: block; margin: 0; padding: 0; }
 
-.project-shell {
+.project-shell,
+.dashboard {
     max-width: 1240px;
     margin: 0 auto;
     padding: 1.2rem clamp(1rem, 3vw, 2.5rem) 4rem;
@@ -55,8 +56,11 @@ div { font-family: inherit; }
 }
 
 .project-shell p,
+.dashboard p,
 .project-shell label,
-.project-shell li { text-align: left; }
+.dashboard label,
+.project-shell li,
+.dashboard li { text-align: left; }
 
 /* --- Page hero ----------------------------------------------------------- */
 
@@ -140,7 +144,10 @@ div { font-family: inherit; }
 
 /* --- Buttons and links --------------------------------------------------- */
 
-.project-shell .primary-button {
+.project-shell .primary-button,
+/* --- Buttons and links --------------------------------------------------- */
+
+.dashboard .primary-button {
     display: inline-flex;
     width: auto;
     min-height: 44px;
@@ -160,14 +167,16 @@ div { font-family: inherit; }
     transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
 }
 
-.project-shell .primary-button:hover {
+.project-shell .primary-button:hover,
+.dashboard .primary-button:hover {
     opacity: 1;
     transform: translateY(-2px);
     background: var(--theme-coffee);
     box-shadow: 0 14px 30px rgba(16, 4, 9, .21);
 }
 
-.project-shell .secondary-button {
+.project-shell .secondary-button,
+.dashboard .secondary-button {
     display: inline-flex;
     width: auto;
     height: auto;
@@ -184,14 +193,17 @@ div { font-family: inherit; }
     cursor: pointer;
 }
 
-.project-shell .secondary-button:hover {
+.project-shell .secondary-button:hover,
+.dashboard .secondary-button:hover {
     border-color: var(--theme-periwinkle);
     background: rgba(206, 154, 213, .12);
 }
 
-.project-shell a { color: #135e78; }
+.project-shell a,
+.dashboard a { color: #135e78; }
 
-.project-shell code {
+.project-shell code,
+.dashboard code {
     padding: .1em .4em;
     color: var(--theme-coffee);
     border: 1px solid rgba(153, 153, 214, .25);
@@ -237,13 +249,21 @@ div { font-family: inherit; }
 
 /* --- Forms --------------------------------------------------------------- */
 
-.project-shell label { display: block; margin-bottom: .3rem; color: var(--theme-muted); font-size: .75rem; font-weight: 700; }
+.project-shell label,
+/* --- Forms --------------------------------------------------------------- */
+
+.dashboard label { display: block; margin-bottom: .3rem; color: var(--theme-muted); font-size: .75rem; font-weight: 700; }
 
 .project-shell select,
+.dashboard select,
 .project-shell input[type="text"],
+.dashboard input[type="text"],
 .project-shell input[type="number"],
+.dashboard input[type="number"],
 .project-shell input[type="file"],
-.project-shell textarea {
+.dashboard input[type="file"],
+.project-shell textarea,
+.dashboard textarea {
     width: 100%;
     padding: .6rem .7rem;
     color: var(--theme-jet);
@@ -255,10 +275,15 @@ div { font-family: inherit; }
 }
 
 .project-shell select:focus-visible,
+.dashboard select:focus-visible,
 .project-shell input:focus-visible,
+.dashboard input:focus-visible,
 .project-shell textarea:focus-visible,
+.dashboard textarea:focus-visible,
 .project-shell a:focus-visible,
-.project-shell button:focus-visible {
+.dashboard a:focus-visible,
+.project-shell button:focus-visible,
+.dashboard button:focus-visible {
     outline: 2px solid var(--theme-sky);
     outline-offset: 2px;
 }
@@ -283,8 +308,15 @@ div { font-family: inherit; }
 }
 
 /* --- Back to the hub ------------------------------------------------------
-   Every project page must offer a predictable way back to the launch page, in
+   Every project page must offer a predictable way back to the launch page,
+in
    the same screen position. Pages built on .project-shell use this breadcrumb;
+   Project 3 surfaces the same link inside its own sidebar and task nav.
+   -------------------------------------------------------------------------- */
+
+.hub-nav,
+in
+   the same screen position. Pages built on .dashboard use this breadcrumb;
    Project 3 surfaces the same link inside its own sidebar and task nav.
    -------------------------------------------------------------------------- */
 

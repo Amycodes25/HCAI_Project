@@ -107,7 +107,8 @@
     background: var(--theme-jet);
 }
 
-.project-shell .button {
+.project-shell .button,
+.dashboard .button {
     display: inline-flex;
     width: auto;
     min-height: 42px;
@@ -126,7 +127,8 @@
     transition: transform .2s ease, background .2s ease;
 }
 
-.project-shell .button:hover { transform: translateY(-2px); background: var(--theme-coffee); }
+.project-shell .button:hover,
+.dashboard .button:hover { transform: translateY(-2px); background: var(--theme-coffee); }
 
 /* --- Stats ---------------------------------------------------------------- */
 

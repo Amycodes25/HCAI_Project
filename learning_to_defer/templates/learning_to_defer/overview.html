@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% load static %}
+{% load assets %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'learning_to_defer/overview.css' %}">
+<link rel="stylesheet" href="{% vstatic 'learning_to_defer/overview.css' %}">
 {% endblock %}
 
 {% block content %}

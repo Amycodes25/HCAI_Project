@@ -1,14 +1,19 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load assets %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'project1/style.css' %}">
+    <link rel="stylesheet" href="{% vstatic 'dashboard.css' %}">
+    <link rel="stylesheet" href="{% vstatic 'project1/style.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="project-shell">
+<div class="dashboard">
+    <a class="skip-link" href="#project1-content">Skip to content</a>
 
-    {% include 'hub_nav.html' with current="Project 1" %}
+    {% include 'project1/_sidebar.html' %}
+
+    <main class="dashboard-main" id="project1-content">
 
     <header class="page-header">
         <div class="hero-top">
@@ -548,10 +553,11 @@
         HCAI Project 1 · Supervised Learning Interface
     </div>
 
+    </main>
 </div>
 
 {% endblock %}
 
 {% block script %}
-    <script src="{% static 'project1/project1.js' %}" defer></script>
+    <script src="{% vstatic 'project1/project1.js' %}" defer></script>
 {% endblock script %}

@@ -21,10 +21,21 @@
     document.documentElement.classList.add("js-on");
 
     var REGIONS = ["model", "counterfactuals", "effects"];
-    var shell = document.querySelector(".project-shell");
+
+    // The container the page is built in. Named separately from the regions
+    // because events are delegated from it: a refresh replaces the controls, so
+    // listeners bound to them directly would not survive.
+    var shell = document.querySelector(".dashboard-main") ||
+                document.querySelector(".project-shell");
+    if (!shell) {
+        return;
+    }
     var inFlight = null;
 
     function section(name) {
+        if (name === "sidebar") {
+            return document.querySelector(".dashboard-sidebar");
+        }
         return document.getElementById("region-" + name);
     }
 
@@ -47,7 +58,7 @@
     function busy(names, state) {
         names.forEach(function (name) {
             var el = section(name);
-            if (el) {
+            if (el && name !== "sidebar") {
                 el.classList.toggle("is-busy", state);
                 el.setAttribute("aria-busy", state ? "true" : "false");
             }
@@ -123,7 +134,8 @@
         }
         var names = affected(el);
         if (names.length) {
-            refresh(names);
+            // The sidebar summarises whatever changed, so it always comes along.
+            refresh(names.concat(["sidebar"]));
         }
     });
 
@@ -141,6 +153,6 @@
 
     form.addEventListener("submit", function (event) {
         event.preventDefault();
-        refresh(REGIONS.slice());
+        refresh(REGIONS.concat(["sidebar"]));
     });
 }());

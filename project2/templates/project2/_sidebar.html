@@ -1,0 +1,41 @@
+<aside class="dashboard-sidebar" aria-label="Project navigation">
+    <div>
+        <a class="sidebar-up" href="{% url 'home:index' %}">
+            <span aria-hidden="true">&larr;</span> HCAI &middot; Group 29
+        </a>
+
+        <a class="brand" href="{% url 'project2:index' %}">
+            <span class="brand-mark" aria-hidden="true">X&middot;AI</span>
+            <span>
+                <strong>Penguin Lens</strong>
+                <small>Explainability</small>
+            </span>
+        </a>
+
+        {% comment %}
+        Anchors, not separate pages. The brief requires the counterfactual and
+        feature-effect regions to stay tied to the model and lambda chosen above
+        them, so splitting them across URLs would break the thing being asked for.
+        {% endcomment %}
+        <p class="nav-label">Tasks</p>
+        <nav class="sidebar-nav">
+            <a class="anchor-step done" href="#region-model">
+                <span class="step-number">1-3</span>
+                <span>Model<small>{{ family_label }} &middot; {{ accuracy_pct }}%</small></span>
+            </a>
+            <a class="anchor-step done" href="#region-counterfactuals">
+                <span class="step-number">4</span>
+                <span>Counterfactuals<small>penguin #{{ point_index }}</small></span>
+            </a>
+            <a class="anchor-step done" href="#region-effects">
+                <span class="step-number">5</span>
+                <span>Feature effects<small>{{ derivative_method }}</small></span>
+            </a>
+        </nav>
+    </div>
+
+    <div class="sidebar-footer">
+        <p>Human-Centric Artificial Intelligence</p>
+        <strong>Project 2 &middot; Group 29</strong>
+    </div>
+</aside>

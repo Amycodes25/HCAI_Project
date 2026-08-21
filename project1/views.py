@@ -157,14 +157,17 @@ def create_scatter_plot(df, x_feature, y_feature, target):
             "No complete rows are available for the selected plot columns."
         )
 
-    figure, axis = plt.subplots(figsize=(9, 5.5))
+    figure, axis = plt.subplots(figsize=(7.5, 4.2), facecolor=SURFACE)
+    style_axis(axis)
 
-    for class_name, class_data in plot_data.groupby(target):
+    for index, (class_name, class_data) in enumerate(plot_data.groupby(target)):
         axis.scatter(
             class_data[x_feature],
             class_data[y_feature],
             label=str(class_name),
-            alpha=0.70,
+            s=34,
+            alpha=0.85,
+            color=SERIES[index % len(SERIES)],
             edgecolors="none",
         )
 
@@ -173,7 +176,11 @@ def create_scatter_plot(df, x_feature, y_feature, target):
     axis.set_title(f"{x_feature} vs {y_feature}, grouped by {target}")
 
     if plot_data[target].nunique() <= 20:
-        axis.legend(title=str(target))
+        legend = axis.legend(title=str(target), frameon=False, fontsize=8)
+        legend.get_title().set_color(MUTED)
+        legend.get_title().set_fontsize(8)
+        for text in legend.get_texts():
+            text.set_color(INK)
     else:
         axis.text(
             0.02,
@@ -183,8 +190,6 @@ def create_scatter_plot(df, x_feature, y_feature, target):
             verticalalignment="top",
         )
 
-    axis.grid(alpha=0.25)
-
     buffer = BytesIO()
     figure.tight_layout()
     figure.savefig(
@@ -192,6 +197,7 @@ def create_scatter_plot(df, x_feature, y_feature, target):
         format="png",
         dpi=130,
         bbox_inches="tight",
+        facecolor=SURFACE,
     )
     plt.close(figure)
 
@@ -199,10 +205,33 @@ def create_scatter_plot(df, x_feature, y_feature, target):
     return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
 
+# The site palette, so figures do not look pasted in from another application.
+SURFACE = "#ffffff"
+INK = "#002429"
+MUTED = "#58686e"
+GRID = "#dfe5ee"
+SERIES = ["#ce9ad5", "#62baf9", "#9999d6", "#f0a202", "#08765a", "#a62942"]
+
+
+def style_axis(axis):
+    axis.set_facecolor(SURFACE)
+    axis.tick_params(colors=MUTED, labelsize=8)
+    for spine in axis.spines.values():
+        spine.set_color(GRID)
+    axis.spines["top"].set_visible(False)
+    axis.spines["right"].set_visible(False)
+    axis.grid(color=GRID, linewidth=0.6, linestyle="--", alpha=0.8)
+    axis.xaxis.label.set_color(MUTED)
+    axis.yaxis.label.set_color(MUTED)
+    axis.title.set_color(INK)
+    return axis
+
+
 def encode_figure(figure):
     buffer = BytesIO()
     figure.tight_layout()
-    figure.savefig(buffer, format="png", dpi=130, bbox_inches="tight")
+    figure.savefig(buffer, format="png", dpi=130, bbox_inches="tight",
+                   facecolor=SURFACE)
     plt.close(figure)
     buffer.seek(0)
     return base64.b64encode(buffer.getvalue()).decode("utf-8")
@@ -217,7 +246,8 @@ def create_sweep_plot(results, parameter_name, score_label):
     labels = [str(row["parameter"]) for row in results]
     scores = [row["accuracy"] for row in results]
 
-    figure, axis = plt.subplots(figsize=(7.5, 3.8))
+    figure, axis = plt.subplots(figsize=(7, 3.4), facecolor=SURFACE)
+    style_axis(axis)
     axis.plot(labels, scores, "-o", color="#62baf9", linewidth=2, markersize=6)
 
     best = max(range(len(scores)), key=lambda i: scores[i])
@@ -229,8 +259,8 @@ def create_sweep_plot(results, parameter_name, score_label):
 
     axis.set_xlabel(parameter_name)
     axis.set_ylabel(f"{score_label} (%)")
-    axis.set_title(f"{score_label} against {parameter_name.lower()}")
-    axis.grid(alpha=0.25)
+    axis.set_title(f"{score_label} against {parameter_name.lower()}",
+                   fontsize=10, pad=10)
     return encode_figure(figure)
 
 
@@ -242,17 +272,21 @@ def create_confusion_matrix_plot(y_true, y_pred, labels):
     """
     matrix = confusion_matrix(y_true, y_pred, labels=labels)
 
-    figure, axis = plt.subplots(
-        figsize=(max(4.5, len(labels) * 1.1), max(3.8, len(labels) * 0.95))
-    )
-    image = axis.imshow(matrix, cmap="Blues")
+    size = max(3.4, min(7.0, len(labels) * 0.85))
+    figure, axis = plt.subplots(figsize=(size + 0.6, size), facecolor=SURFACE)
+    image = axis.imshow(matrix, cmap="Purples")
+    axis.grid(False)
 
     axis.set_xticks(range(len(labels)), [str(label) for label in labels],
                     rotation=35, ha="right")
     axis.set_yticks(range(len(labels)), [str(label) for label in labels])
-    axis.set_xlabel("Predicted")
-    axis.set_ylabel("Actual")
-    axis.set_title("Confusion matrix, best configuration")
+    axis.set_xlabel("Predicted", color=MUTED)
+    axis.set_ylabel("Actual", color=MUTED)
+    axis.set_title("Confusion matrix, best configuration", fontsize=10,
+                   color=INK, pad=10)
+    axis.tick_params(colors=MUTED, labelsize=8)
+    for spine in axis.spines.values():
+        spine.set_color(GRID)
 
     threshold = matrix.max() / 2 if matrix.max() else 0
     for i in range(len(labels)):
@@ -261,7 +295,9 @@ def create_confusion_matrix_plot(y_true, y_pred, labels):
                       fontsize=9,
                       color="white" if matrix[i, j] > threshold else "#233b3f")
 
-    figure.colorbar(image, ax=axis, shrink=0.8)
+    bar = figure.colorbar(image, ax=axis, shrink=0.72)
+    bar.ax.tick_params(colors=MUTED, labelsize=7)
+    bar.outline.set_edgecolor(GRID)
     return encode_figure(figure)
 
 

@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load assets %}
 
 {% comment %}
 The participant's shell. Deliberately carries no project navigation: someone
@@ -8,7 +9,7 @@ read the hypothesis mid-study would be a confound.
 {% endcomment %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'project4/study.css' %}">
+    <link rel="stylesheet" href="{% vstatic 'project4/study.css' %}">
 {% endblock %}
 
 {% block content %}

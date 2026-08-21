@@ -193,7 +193,10 @@
 
 /* Buttons here reuse the theme's primary/secondary shapes. */
 
-.project-shell .button {
+.project-shell .button,
+/* Buttons here reuse the theme's primary/secondary shapes. */
+
+.dashboard .button {
     display: inline-flex;
     width: auto;
     min-height: 44px;
@@ -213,27 +216,34 @@
     transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
 }
 
-.project-shell .button:hover {
+.project-shell .button:hover,
+.dashboard .button:hover {
     opacity: 1;
     transform: translateY(-2px);
     background: var(--theme-coffee);
     box-shadow: 0 14px 30px rgba(16, 4, 9, .21);
 }
 
-.project-shell .button.secondary {
+.project-shell .button.secondary,
+.dashboard .button.secondary {
     color: var(--theme-coffee);
     border: 1px solid var(--theme-line);
     background: var(--theme-white);
     box-shadow: none;
 }
 
-.project-shell .button.secondary:hover { border-color: var(--theme-periwinkle); background: rgba(206, 154, 213, .12); }
+.project-shell .button.secondary:hover,
+.dashboard .button.secondary:hover { border-color: var(--theme-periwinkle); background: rgba(206, 154, 213, .12); }
 
-.project-shell .button.danger { background: #8d2438; box-shadow: 0 10px 24px rgba(141, 36, 56, .2); }
-.project-shell .button.danger:hover { background: #a62942; }
+.project-shell .button.danger,
+.dashboard .button.danger { background: #8d2438; box-shadow: 0 10px 24px rgba(141, 36, 56, .2); }
+.project-shell .button.danger:hover,
+.dashboard .button.danger:hover { background: #a62942; }
 
-.project-shell .button.success { background: #08765a; box-shadow: 0 10px 24px rgba(8, 118, 90, .2); }
-.project-shell .button.success:hover { background: #096b52; }
+.project-shell .button.success,
+.dashboard .button.success { background: #08765a; box-shadow: 0 10px 24px rgba(8, 118, 90, .2); }
+.project-shell .button.success:hover,
+.dashboard .button.success:hover { background: #096b52; }
 
 /* --- Data table and plots ------------------------------------------------- */
 
@@ -350,14 +360,21 @@
 }
 
 /* --- Working state ---------------------------------------------------------
-   The forms are submitted with fetch and the shell is swapped in place, so the
+   The forms are submitted with fetch and the shell is swapped in place,
+so the
    page never jumps. Dim it while that is in flight. */
 
-.project-shell { transition: opacity .18s ease; }
+.project-shell,
+so the
+   page never jumps. Dim it while that is in flight. */
 
-.project-shell.is-busy { opacity: .6; }
+.dashboard { transition: opacity .18s ease; }
 
-.project-shell.is-busy form { pointer-events: none; }
+.project-shell.is-busy,
+.dashboard.is-busy { opacity: .6; }
+
+.project-shell.is-busy form,
+.dashboard.is-busy form { pointer-events: none; }
 
 @media (prefers-reduced-motion: reduce) {
     .project-shell { transition: none; }
@@ -379,13 +396,16 @@
 
 .control-list { margin: 1rem 0 0; display: grid; gap: .4rem; }
 
+/* The label and the who-decides pill sit on one line; the reason wraps beneath
+   once the column is too narrow to carry all three, which it is on any normal
+   screen now that the sidebar takes its share. */
 .control-list > div {
     display: grid;
-    gap: .8rem;
+    gap: .15rem .7rem;
     align-items: baseline;
-    padding-bottom: .45rem;
+    padding-bottom: .5rem;
     border-bottom: 1px solid rgba(0, 36, 41, .07);
-    grid-template-columns: 170px 52px 1fr;
+    grid-template-columns: 1fr auto;
 }
 
 .control-list > div:last-child { border-bottom: none; }
@@ -406,7 +426,9 @@
 .control-list dd.you { color: #08765a; background: rgba(8, 118, 90, .12); }
 .control-list dd.us { color: var(--theme-muted); background: rgba(153, 153, 214, .16); }
 
-@media (max-width: 640px) {
-    .control-list > div { grid-template-columns: 1fr auto; }
-    .control-list dd:last-child { grid-column: 1 / -1; }
+.control-list dd:last-child { grid-column: 1 / -1; }
+
+@media (min-width: 1100px) {
+    .control-list > div { grid-template-columns: 180px 52px 1fr; gap: .8rem; }
+    .control-list dd:last-child { grid-column: auto; }
 }

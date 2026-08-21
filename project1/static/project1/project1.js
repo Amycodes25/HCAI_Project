@@ -13,7 +13,8 @@
 (function () {
     "use strict";
 
-    var shell = document.querySelector(".project-shell");
+    var shell = document.querySelector(".dashboard-main") ||
+                document.querySelector(".project-shell");
     if (!shell || !window.fetch || !window.FormData || !window.DOMParser) {
         return;
     }
@@ -59,11 +60,21 @@
 
     function swap(html) {
         var parsed = new DOMParser().parseFromString(html, "text/html");
-        var fresh = parsed.querySelector(".project-shell");
+        var fresh = parsed.querySelector(".dashboard-main") ||
+                    parsed.querySelector(".project-shell");
         if (!fresh) {
             return false;
         }
         shell.innerHTML = fresh.innerHTML;
+
+        // The sidebar tracks progress through the pipeline, so it has to come
+        // across too -- it sits outside the main column and would otherwise
+        // keep reporting the state before the action.
+        var sidebar = document.querySelector(".dashboard-sidebar");
+        var freshSidebar = parsed.querySelector(".dashboard-sidebar");
+        if (sidebar && freshSidebar) {
+            sidebar.innerHTML = freshSidebar.innerHTML;
+        }
         return true;
     }
 
@@ -99,7 +110,7 @@
             })
             .then(function (html) {
                 if (!swap(html)) {
-                    throw new Error("no .project-shell in response");
+                    throw new Error("no page container in the response");
                 }
                 reveal(revealId, scrollBefore);
             })
