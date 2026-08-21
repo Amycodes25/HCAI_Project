@@ -45,11 +45,19 @@ C_GRID = np.logspace(-3, 2, 30)
 RANDOM_STATE = 42
 
 
-def build_preprocessor():
-    """Scale the numeric features, one-hot the unordered categorical ones."""
+def build_preprocessor(scale=True):
+    """One-hot the unordered categorical features; optionally scale the numeric ones.
+
+    Trees are invariant to monotone rescaling, so scaling buys them nothing --
+    and it actively hurts here, because `tree_.threshold` would then be in
+    standard deviations and the interface would show splits like
+    "flipper length <= 0.4" instead of "<= 206.5 mm". Trees are therefore fitted
+    on the raw numeric values, and only logistic regression is scaled, where it
+    is needed for the penalty to treat features comparably.
+    """
     return ColumnTransformer(
         transformers=[
-            ("numeric", StandardScaler(), NUMERIC_FEATURES),
+            ("numeric", StandardScaler() if scale else "passthrough", NUMERIC_FEATURES),
             (
                 "categorical",
                 OneHotEncoder(handle_unknown="ignore", sparse_output=False),
@@ -60,8 +68,8 @@ def build_preprocessor():
     )
 
 
-def _fit(estimator, X_train, y_train):
-    pipeline = Pipeline([("prep", build_preprocessor()), ("model", estimator)])
+def _fit(estimator, X_train, y_train, scale=True):
+    pipeline = Pipeline([("prep", build_preprocessor(scale)), ("model", estimator)])
     return pipeline.fit(X_train, y_train)
 
 
@@ -85,6 +93,7 @@ def train_trees(X_train, y_train, X_test, y_test):
             ),
             X_train,
             y_train,
+            scale=False,
         )
         fitted.append(
             {

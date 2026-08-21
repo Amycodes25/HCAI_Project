@@ -232,3 +232,32 @@
 /* With JavaScript the controls apply themselves, so the button is only the
    no-JS fallback. It stays reachable by keyboard but out of the way. */
 .js-on .control-submit { display: none; }
+
+/* --- Decision tree (SVG) ---------------------------------------------------
+   Drawn server-side as SVG rather than a matplotlib PNG, so it stays crisp,
+   uses the site palette, and its text is real text. */
+
+.tree-figure { margin: 1.1rem 0 0; }
+
+.tree-canvas {
+    padding: .5rem;
+    overflow-x: auto;
+    border: 1px solid var(--theme-line);
+    border-radius: 16px;
+    background: var(--theme-white);
+}
+
+.tree-svg { display: block; max-width: none; height: auto; margin: 0 auto; }
+
+.tree-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem 1.1rem;
+    margin-top: .7rem;
+    color: var(--theme-muted);
+    font-size: .74rem;
+}
+
+.tree-key { display: inline-flex; gap: .4rem; align-items: center; font-weight: 700; }
+
+.tree-key i { width: 11px; height: 11px; border-radius: 3px; }

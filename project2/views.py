@@ -26,9 +26,8 @@ and fall back to an ordinary GET, which returns the whole page.
 """
 
 from django.shortcuts import render
-from django.template.loader import render_to_string
 
-from .ml import artifacts, counterfactuals, effects, models, plots
+from .ml import artifacts, counterfactuals, effects, models, plots, treeviz
 from .ml.data import FEATURE_LABELS, NUMERIC_FEATURES
 
 DEFAULT_LAMBDA = 0.005
@@ -92,7 +91,8 @@ def _select(bundle, state):
 def _model_context(bundle, state):
     candidates, selected = _select(bundle, state)
     family = state["family"]
-    return {
+
+    context = {
         "family_label": models.MODEL_LABELS[family],
         "omega_label": models.OMEGA_LABELS[family],
         "selected": selected,
@@ -100,9 +100,19 @@ def _model_context(bundle, state):
                           else str(selected["omega"])),
         "accuracy_pct": f"{selected['accuracy'] * 100:.1f}",
         "n_candidates": len(candidates),
-        "model_plot": plots.model_figure(selected, bundle["classes"]),
         "tradeoff_plot": plots.tradeoff_figure(candidates, selected, family),
     }
+
+    if family == models.TREE:
+        # Drawn as SVG rather than a PNG: themed, selectable, and legible at
+        # depth. See ml/treeviz.py.
+        svg, legend = treeviz.render(selected["pipeline"], bundle["classes"])
+        context["tree_svg"] = svg
+        context["tree_legend"] = legend
+    else:
+        context["model_plot"] = plots.model_figure(selected, bundle["classes"])
+
+    return context
 
 
 def _counterfactual_context(request, bundle, state):

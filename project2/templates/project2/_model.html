@@ -49,10 +49,17 @@
     </div>
 </div>
 
-<div class="plot-wrapper plot-model">
-    <img src="data:image/png;base64,{{ model_plot }}"
-         alt="The selected {{ family_label|lower }}">
-</div>
+{% if tree_svg %}
+    <figure class="tree-figure">
+        <div class="tree-canvas">{{ tree_svg|safe }}</div>
+        <figcaption class="tree-legend">{{ tree_legend|safe }}</figcaption>
+    </figure>
+{% else %}
+    <div class="plot-wrapper plot-model">
+        <img src="data:image/png;base64,{{ model_plot }}"
+             alt="Coefficients of the selected logistic regression">
+    </div>
+{% endif %}
 
 <div class="plot-wrapper plot-tradeoff">
     <img src="data:image/png;base64,{{ tradeoff_plot }}"
