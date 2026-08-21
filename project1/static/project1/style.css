@@ -348,3 +348,17 @@
     .card-header { flex-direction: column; }
     .stat-value { font-size: 1.45rem; }
 }
+
+/* --- Working state ---------------------------------------------------------
+   The forms are submitted with fetch and the shell is swapped in place, so the
+   page never jumps. Dim it while that is in flight. */
+
+.project-shell { transition: opacity .18s ease; }
+
+.project-shell.is-busy { opacity: .6; }
+
+.project-shell.is-busy form { pointer-events: none; }
+
+@media (prefers-reduced-motion: reduce) {
+    .project-shell { transition: none; }
+}

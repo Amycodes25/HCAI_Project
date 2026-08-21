@@ -58,7 +58,7 @@
         </div>
     {% endif %}
 
-    <section class="card">
+    <section class="card" id="section-upload">
         <div class="card-header">
             <div class="card-title-wrapper">
                 <div class="icon-box">⬆</div>
@@ -72,7 +72,7 @@
             </div>
         </div>
 
-        <form method="POST" enctype="multipart/form-data">
+        <form method="POST" enctype="multipart/form-data" data-reveal="section-overview">
             {% csrf_token %}
 
             <input type="hidden" name="action" value="upload">
@@ -104,7 +104,7 @@
         </form>
 
         {% if data_preview %}
-            <form method="POST" style="margin-top: 14px;">
+            <form method="POST" data-reveal="section-upload" style="margin-top: 14px;">
                 {% csrf_token %}
 
                 <input type="hidden" name="action" value="reset">
@@ -118,7 +118,7 @@
 
     {% if data_preview %}
 
-        <section class="card">
+        <section class="card" id="section-overview">
             <div class="card-header">
                 <div class="card-title-wrapper">
                     <div class="icon-box">▦</div>
@@ -163,7 +163,7 @@
             </div>
         </section>
 
-        <section class="card">
+        <section class="card" id="section-explorer">
             <div class="card-header">
                 <div class="card-title-wrapper">
                     <div class="icon-box">◌</div>
@@ -177,7 +177,7 @@
                 </div>
             </div>
 
-            <form method="POST">
+            <form method="POST" data-reveal="section-explorer">
                 {% csrf_token %}
 
                 <input type="hidden" name="action" value="plot">
@@ -250,7 +250,7 @@
             {% endif %}
         </section>
 
-        <section class="card">
+        <section class="card" id="section-configure">
             <div class="card-header">
                 <div class="card-title-wrapper">
                     <div class="icon-box">⚙</div>
@@ -264,7 +264,7 @@
                 </div>
             </div>
 
-            <form method="POST">
+            <form method="POST" data-reveal="section-evaluation">
                 {% csrf_token %}
 
                 <input type="hidden" name="action" value="train">
@@ -367,7 +367,7 @@
     {% endif %}
 
     {% if hyperparameter_results %}
-        <section class="card">
+        <section class="card" id="section-evaluation">
             <div class="card-header">
                 <div class="card-title-wrapper">
                     <div class="icon-box">✓</div>
@@ -491,3 +491,7 @@
 </div>
 
 {% endblock %}
+
+{% block script %}
+    <script src="{% static 'project1/project1.js' %}" defer></script>
+{% endblock script %}
