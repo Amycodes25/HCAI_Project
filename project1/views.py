@@ -589,14 +589,6 @@ def index(request):
         # PREPARE DATASET INFORMATION
         # =========================================================
         if df is not None:
-            # Every sweep run against this dataset, so two model families can be
-            # compared with each other and not only within one sweep.
-            context["previous_runs"] = list(
-                TrainingRun.objects.filter(
-                    dataset_id=request.session.get("dataset_id")
-                ).select_related("dataset")[:12]
-            )
-
             available_columns = get_available_columns(df)
 
             if not available_columns:
@@ -838,6 +830,16 @@ def index(request):
         pd.errors.EmptyDataError,
     ) as error:
         context["error"] = str(error)
+
+    # Read last, after any training in this request has been recorded. Querying
+    # earlier left the history one run behind: the response that created a run
+    # showed every run except that one.
+    if request.session.get("dataset_id"):
+        context["previous_runs"] = list(
+            TrainingRun.objects.filter(
+                dataset_id=request.session["dataset_id"]
+            ).select_related("dataset")[:12]
+        )
 
     return render(
         request,

@@ -177,6 +177,21 @@ class Persistence(Project1Base):
         self.assertEqual(len(response.context["previous_runs"]), 3)
         self.assertContains(response, "Everything tried on this dataset")
 
+    def test_a_run_appears_in_the_same_response_that_created_it(self):
+        """The history must not lag a request behind the run it records."""
+        self.upload()
+        first = self.client.post(self.url, {
+            "action": "train", "target": "Species",
+            "model_name": "tree", "test_size": "0.3",
+        })
+        self.assertEqual(len(first.context["previous_runs"]), 1)
+
+        second = self.client.post(self.url, {
+            "action": "train", "target": "Species",
+            "model_name": "knn", "test_size": "0.3",
+        })
+        self.assertEqual(len(second.context["previous_runs"]), 2)
+
     def test_history_is_scoped_to_the_current_dataset(self):
         self.upload(name="first.csv")
         self.client.post(self.url, {
