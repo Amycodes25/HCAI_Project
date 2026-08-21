@@ -1,53 +1,48 @@
 {% extends 'base.html' %}
 
-{%  load static %}
+{% load static %}
 
 {% block extra_css %}
-        <link rel= "stylesheet" href="{% static 'home/style.css'%}">
+    <link rel="stylesheet" href="{% static 'home/style.css' %}">
 {% endblock %}
 
 {% block content %}
 
-<div class="box">
+<div class="project-shell">
 
-    <div class="title-container">
-        <div class="title">HCAI project hub</div>
-    </div>
+    <header class="page-header">
+        <p class="eyebrow">Human-Centric Artificial Intelligence &middot; TUHH</p>
+        <h1>Project hub</h1>
+        <p>Four projects on the human side of machine learning, built as one Django
+        application. Each one is a small app meant to be used by a person.</p>
+    </header>
 
-    <div class="main-text">
-    <div class="summary" >
-        <p class="centered-text">This page serves as the central hub for student 
-        projects developed as part of the <strong>Human-Centric Artificial Intelligence</strong> 
-        course, by the following group:</p>
-    </div>
-    
-    <div class="students">
+    <section class="group-panel">
+        <h2>Group</h2>
         <ul class="student-list">
             {% for student in students %}
                 <li class="student-item">
                     <span class="student-name">{{ student.name }}</span>
-                    {% if student.matriculation %}– <span class="student-id">{{ student.matriculation }}</span>{% endif %}
+                    {% if student.matriculation %}<span class="student-id">{{ student.matriculation }}</span>{% endif %}
                 </li>
             {% empty %}
                 <li>No students found.</li>
             {% endfor %}
         </ul>
-    </div>
-    
-    
-    <div class="projects">
-        <h2 style="text-align: center;">Projects</h2>
-        <div class="button-container">
+    </section>
+
+    <section>
+        <h2 class="section-heading">Projects</h2>
+        <div class="card-grid">
             {% for project in projects %}
-                <article class="project-card">
+                <article class="card project-card">
                     <h3>{{ project.name }}</h3>
                     <p>{{ project.description }}</p>
-                    <a class="project-link" href="{% url project.url_name %}">Open project</a>
+                    <a class="primary-button" href="{% url project.url_name %}">Open project</a>
                 </article>
             {% endfor %}
         </div>
-    </div>
-    
+    </section>
 
 </div>
 

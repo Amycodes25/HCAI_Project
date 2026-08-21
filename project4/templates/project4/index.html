@@ -6,27 +6,34 @@
 {% endblock %}
 
 {% block content %}
-<div class="box">
-    <div class="title-container">
-        <div class="title">Project 4: Preference Elicitation</div>
+<div class="project-shell">
+
+    <header class="page-header">
+        <p class="eyebrow">Project 4</p>
+        <h1>Preference elicitation</h1>
+        <p>A movie recommender that adapts to a new user, and a user study comparing two ways of asking someone what they like.</p>
+    </header>
+
+    <div class="section-note">
+        <p>This project is in progress. The finished landing page offers two things:
+        a PDF describing the method and the study design, and a button that starts
+        the study itself.</p>
     </div>
 
-    <div class="main-text">
-        <p class="status-note">
-            This project is in progress. The finished landing page offers two
-            things: a PDF describing the method and the study design, and a
-            button that starts the study itself.
-        </p>
-
-        <h2>Tasks</h2>
-        <ol class="task-list">
-            <li>Choose and justify a feature representation for the IMDB 5000 movies.</li>
-            <li>Extend the Bradley&ndash;Terry model to rankings of more than two items.</li>
-            <li>Design a user study comparing pairwise choice against ranking ten movies.</li>
-            <li>Implement the interface a participant would actually use.</li>
-        </ol>
-
-        <p><a class="project-link" href="{% url 'home:index' %}">Back to the project hub</a></p>
+    <div class="card-grid">
+        <article class="card">
+            <h3>Tasks</h3>
+            <ol>
+                <li>Choose and justify a feature representation for the IMDB 5000 movies.</li>
+                <li>Extend the Bradley&ndash;Terry model to rankings of more than two items.</li>
+                <li>Design a user study comparing pairwise choice against ranking ten movies.</li>
+                <li>Implement the interface a participant would actually use.</li>
+            </ol>
+        </article>
     </div>
+
+
+    <p><a class="secondary-button" href="{% url 'home:index' %}">Back to the project hub</a></p>
+
 </div>
 {% endblock %}

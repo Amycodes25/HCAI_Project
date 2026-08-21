@@ -6,37 +6,45 @@
 {% endblock %}
 
 {% block content %}
-<div class="box">
-    <div class="title-container">
-        <div class="title">Project 2: Explainability</div>
+<div class="project-shell">
+
+    <header class="page-header">
+        <p class="eyebrow">Project 2</p>
+        <h1>Explainability</h1>
+        <p>Interpretability and complexity on the Palmer Penguins dataset: the regularisation trade-off, counterfactuals, and feature effect plots.</p>
+    </header>
+
+    <div class="section-note">
+        <p>This app is being ported from a standalone Gradio prototype into this
+        Django project. The prototype implements all five tasks; the work here is
+        the port and the corrections listed below.</p>
     </div>
 
-    <div class="main-text">
-        <p class="status-note">
-            This app is being ported from a standalone Gradio prototype into this
-            Django project. The prototype implements all five tasks; the work here
-            is the port and the corrections listed below.
-        </p>
-
-        <h2>Tasks</h2>
-        <ol class="task-list">
-            <li>Fit a decision tree; show the tree, its test accuracy and its number of leaves.</li>
-            <li>Add a &lambda; slider selecting the model that maximises accuracy &minus; &Omega;(f).</li>
-            <li>Repeat for logistic regression with a suitable complexity measure &Omega;.</li>
-            <li>Counterfactual explanations, ranked by MAD-weighted L1 distance.</li>
-            <li>PDP and ALE plots, written from scratch, one curve per species.</li>
-        </ol>
-
-        <h2>Remaining work</h2>
-        <ul class="task-list">
-            <li>Port the Gradio callbacks to Django views rendering saved figures.</li>
-            <li>Remove <code>multi_class="multinomial"</code> &mdash; removed in scikit-learn 1.7.</li>
-            <li>Implement the exact-gradient ALE branch for logistic regression, or correct the claim.</li>
-            <li>Perturb only a subset of features per sample so counterfactuals can be sparse.</li>
-            <li>One-hot encode <code>island</code> instead of passing it as an ordinal.</li>
-        </ul>
-
-        <p><a class="project-link" href="{% url 'home:index' %}">Back to the project hub</a></p>
+    <div class="card-grid">
+        <article class="card">
+            <h3>Tasks</h3>
+            <ol>
+                <li>Fit a decision tree; show the tree, its test accuracy and its number of leaves.</li>
+                <li>Add a &lambda; slider selecting the model that maximises accuracy &minus; &Omega;(f).</li>
+                <li>Repeat for logistic regression with a suitable complexity measure &Omega;.</li>
+                <li>Counterfactual explanations, ranked by MAD-weighted L1 distance.</li>
+                <li>PDP and ALE plots, written from scratch, one curve per species.</li>
+            </ol>
+        </article>
+        <article class="card">
+            <h3>Remaining work</h3>
+            <ul>
+                <li>Port the Gradio callbacks to Django views rendering saved figures.</li>
+                <li>Remove <code>multi_class="multinomial"</code>, removed in scikit-learn 1.7.</li>
+                <li>Implement the exact-gradient ALE branch for logistic regression, or correct the claim.</li>
+                <li>Perturb only a subset of features per sample so counterfactuals can be sparse.</li>
+                <li>One-hot encode <code>island</code> instead of passing it as an ordinal.</li>
+            </ul>
+        </article>
     </div>
+
+
+    <p><a class="secondary-button" href="{% url 'home:index' %}">Back to the project hub</a></p>
+
 </div>
 {% endblock %}
