@@ -1,4 +1,5 @@
 <nav class="project-nav" aria-label="Project tasks">
+    <a class="nav-hub" href="{% url 'home:index' %}" title="Back to the project hub">&larr; Hub</a>
     <a {% if active_task == "overview" %}class="active" aria-current="page"{% endif %} href="{% url 'learning_to_defer:overview' %}">Overview</a>
     <a {% if active_task == "task1" %}class="active" aria-current="page"{% endif %} href="{% url 'learning_to_defer:baseline' %}">Task 1</a>
     <a {% if active_task == "task2" %}class="active" aria-current="page"{% endif %} href="{% url 'learning_to_defer:simulated_expert' %}">Task 2</a>

@@ -285,3 +285,26 @@ body {
     html { scroll-behavior: auto; }
     *, *::before, *::after { transition: none !important; }
 }
+
+/* Back to the launch page. Sits above the project brand so it reads as
+   "up one level" rather than as another destination inside this project. */
+.sidebar-up {
+    display: inline-flex;
+    gap: .4rem;
+    align-items: center;
+    margin-bottom: 1.1rem;
+    padding: .45rem .7rem;
+    color: rgba(229, 252, 255, .78);
+    border: 1px solid rgba(229, 252, 255, .18);
+    border-radius: 11px;
+    font-size: .72rem;
+    font-weight: 750;
+    text-decoration: none;
+    transition: color .2s ease, background .2s ease, transform .2s ease;
+}
+
+.sidebar-up:hover {
+    color: #fff;
+    background: rgba(229, 252, 255, .12);
+    transform: translateX(-2px);
+}

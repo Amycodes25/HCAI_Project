@@ -8,6 +8,8 @@
 {% block content %}
 <div class="project-shell">
 
+    {% include 'hub_nav.html' with current="Project 4" %}
+
     <header class="page-header">
         <p class="eyebrow">Project 4</p>
         <h1>Preference elicitation</h1>
@@ -32,8 +34,6 @@
         </article>
     </div>
 
-
-    <p><a class="secondary-button" href="{% url 'home:index' %}">Back to the project hub</a></p>
 
 </div>
 {% endblock %}

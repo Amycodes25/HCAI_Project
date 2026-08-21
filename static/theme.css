@@ -38,8 +38,13 @@ body {
     font-family: Inter, "Segoe UI", Arial, sans-serif;
 }
 
-/* The skeleton centres one absolutely positioned white card. Every page in this
-   project scrolls instead, so both wrappers are neutralised here. */
+/* The skeleton sets a font on the bare `div` selector, which every wrapper in
+   the page then picks up ahead of the one on body. Neutralised here so type
+   inherits from body as normal; same specificity, and this sheet loads later. */
+div { font-family: inherit; }
+
+/* The skeleton also centres one absolutely positioned white card. Every page in
+   this project scrolls instead, so that wrapper is neutralised too. */
 .grid-parent { display: block; margin: 0; padding: 0; }
 
 .project-shell {
@@ -52,8 +57,6 @@ body {
 .project-shell p,
 .project-shell label,
 .project-shell li { text-align: left; }
-
-.project-shell div { font-family: inherit; }
 
 /* --- Page hero ----------------------------------------------------------- */
 
@@ -278,3 +281,52 @@ body {
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition: none !important; }
 }
+
+/* --- Back to the hub ------------------------------------------------------
+   Every project page must offer a predictable way back to the launch page, in
+   the same screen position. Pages built on .project-shell use this breadcrumb;
+   Project 3 surfaces the same link inside its own sidebar and task nav.
+   -------------------------------------------------------------------------- */
+
+.hub-nav {
+    display: flex;
+    gap: .55rem;
+    align-items: center;
+    padding: .35rem 0 0;
+    font-size: .78rem;
+}
+
+.hub-nav .hub-up {
+    display: inline-flex;
+    gap: .45rem;
+    align-items: center;
+    padding: .42rem .7rem;
+    color: var(--theme-coffee);
+    border: 1px solid var(--theme-line);
+    border-radius: 11px;
+    background: rgba(255, 255, 255, .8);
+    font-weight: 750;
+    text-decoration: none;
+    transition: border-color .2s ease, background .2s ease, transform .2s ease;
+}
+
+.hub-nav .hub-up:hover {
+    border-color: var(--theme-periwinkle);
+    background: rgba(206, 154, 213, .14);
+    transform: translateX(-2px);
+}
+
+.hub-nav .hub-arrow { font-size: .95em; line-height: 1; }
+
+.hub-nav .hub-sep { color: rgba(0, 36, 41, .28); }
+
+.hub-nav .hub-current { color: var(--theme-muted); font-weight: 700; }
+
+/* Project 3's task pages put the hub link first in their existing pill bar. */
+.project-nav a.nav-hub {
+    color: var(--theme-sky);
+    border-right: 1px solid rgba(255, 255, 255, .14);
+    border-radius: 11px 0 0 11px;
+}
+
+.project-nav a.nav-hub:hover { color: var(--theme-white); background: rgba(98, 186, 249, .18); }
