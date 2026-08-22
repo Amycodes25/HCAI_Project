@@ -23,10 +23,25 @@
     </div>
 
     <div class="control control-wide">
-        <label for="lam">&lambda; = <span data-lambda-readout>{{ lam }}</span></label>
+        <label for="lam">
+            How much is simplicity worth?
+            <span class="lambda-value">&lambda; = <span data-lambda-readout>{{ lam }}</span></span>
+        </label>
         <input type="range" id="lam" name="lam" form="p2-controls" data-affects="all"
                min="0" max="{{ max_lambda }}" step="{{ lambda_step }}" value="{{ lam }}">
-        <p class="helper-text">Higher &lambda; buys simplicity at the cost of accuracy.</p>
+        <p class="helper-text">
+            {% if is_most_accurate %}
+                Nothing traded away yet: this is the most accurate of the
+                {{ n_candidates }} models fitted. Drag right to buy simplicity.
+            {% else %}
+                Costing <strong>{{ accuracy_cost }} points</strong> of accuracy
+                {% if family == 'tree' %}
+                    to remove <strong>{{ omega_saved }} leaves</strong>.
+                {% else %}
+                    to shrink &#8214;W&#8214;&#8321; by <strong>{{ omega_saved }}</strong>.
+                {% endif %}
+            {% endif %}
+        </p>
     </div>
 
     <div class="control control-submit">
@@ -55,7 +70,27 @@
         <figcaption class="tree-legend">{{ tree_legend|safe }}</figcaption>
     </figure>
 {% else %}
-    <div class="plot-wrapper plot-model">
+    <div class="section-note">
+    <p>
+        <strong>How the model is chosen.</strong> {{ n_candidates }} models are
+        fitted in advance across a range of complexities; the one shown is
+        whichever scores highest on
+        <em>accuracy &minus; &lambda;&thinsp;&middot;&thinsp;&Omega;(f)</em>, where
+        &Omega; measures how complicated the model is &mdash;
+        {% if family == 'tree' %}
+            the number of leaves, as the brief specifies for a tree.
+        {% else %}
+            &#8214;W&#8214;&#8321;, the sum of the absolute coefficients. It grows
+            both as more features get weight and as individual weights get larger,
+            which is what makes a linear model hard to read off.
+        {% endif %}
+        At &lambda;&nbsp;=&nbsp;0 the complexity term vanishes and the most accurate
+        model wins, which is why the page starts there rather than at a value
+        nobody has asked for.
+    </p>
+</div>
+
+<div class="plot-wrapper plot-model">
         <img src="data:image/png;base64,{{ model_plot }}"
              alt="Coefficients of the selected logistic regression">
     </div>

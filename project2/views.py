@@ -30,8 +30,15 @@ from django.shortcuts import render
 from .ml import artifacts, counterfactuals, effects, models, plots, treeviz
 from .ml.data import FEATURE_LABELS, NUMERIC_FEATURES
 
-DEFAULT_LAMBDA = 0.005
-MAX_LAMBDA = 0.1
+# Start at zero: no penalty, so the model shown first is simply the most
+# accurate one. That is the only defensible starting point -- any other value is
+# a preference for simplicity that the user has not expressed yet. Moving the
+# slider is then a deliberate act with a visible cost.
+DEFAULT_LAMBDA = 0.0
+
+# Above roughly 0.05 nothing changes: both families have already collapsed to
+# their simplest model, so more slider travel buys nothing.
+MAX_LAMBDA = 0.06
 LAMBDA_STEP = 0.001
 
 MODEL = "model"
@@ -97,8 +104,18 @@ def _model_context(bundle, state):
     candidates, selected = _select(bundle, state)
     family = state["family"]
 
+    # What this lambda costs against the most accurate model available, so the
+    # slider reports a trade rather than just moving a number.
+    unpenalised = models.select_by_lambda(candidates, 0.0)
+    accuracy_cost = (unpenalised["accuracy"] - selected["accuracy"]) * 100
+    omega_saved = unpenalised["omega"] - selected["omega"]
+
     context = {
         "family_label": models.MODEL_LABELS[family],
+        "is_most_accurate": selected["omega"] == unpenalised["omega"],
+        "accuracy_cost": f"{accuracy_cost:.1f}",
+        "omega_saved": (f"{omega_saved:.2f}" if family == models.LOGREG
+                        else f"{omega_saved:.0f}"),
         "omega_label": models.OMEGA_LABELS[family],
         "selected": selected,
         "omega_display": (f"{selected['omega']:.2f}" if family == models.LOGREG

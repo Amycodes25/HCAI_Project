@@ -165,3 +165,11 @@
 .tree-key { display: inline-flex; gap: .4rem; align-items: center; font-weight: 700; }
 
 .tree-key i { width: 11px; height: 11px; border-radius: 3px; }
+
+.lambda-value {
+    margin-left: .4rem;
+    color: var(--theme-muted);
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .72rem;
+    font-weight: 600;
+}
