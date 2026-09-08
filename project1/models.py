@@ -59,6 +59,15 @@ class TrainingRun(models.Model):
     best_parameter = models.CharField(max_length=64)
     best_score = models.FloatField()
 
+    # best_score is the cross-validated score that chose this configuration;
+    # held_out_test_score is that configuration measured once against data it
+    # never influenced. Keeping both is the point: a run that only stored the
+    # test score would tempt a reader into treating it as having chosen the
+    # model, when cross-validation did.
+    held_out_test_score = models.FloatField(null=True, blank=True)
+    cv_folds = models.PositiveIntegerField(default=0)
+    outliers_excluded = models.PositiveIntegerField(default=0)
+
     training_rows = models.PositiveIntegerField()
     testing_rows = models.PositiveIntegerField()
 

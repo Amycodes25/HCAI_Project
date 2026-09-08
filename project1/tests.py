@@ -394,3 +394,181 @@ class Training(Project1Base):
         self.upload(data)
         response = self.train(target="label")
         self.assertIsNone(self.error_in(response))
+
+
+class CrossValidation(Project1Base):
+    """The brief asks who selects the hyperparameters; the decision record
+    says cross-validation is the system's job. These check that a sweep is
+    actually chosen by cross-validated performance on the training set, and
+    that the held-out test score is measured separately, not used to pick
+    the winner (see evaluate_model_hyperparameters in views.py)."""
+
+    def test_a_normal_sized_sweep_uses_cross_validation(self):
+        self.upload()  # the 18-row IRIS fixture, three balanced classes
+        response = self.client.post(self.url, {
+            "action": "train", "target": "Species",
+            "model_name": "tree", "test_size": "0.3",
+        })
+        self.assertIsNone(self.error_in(response))
+        self.assertTrue(response.context["used_cross_validation"])
+        self.assertGreaterEqual(response.context["cv_folds"], 2)
+
+    def test_held_out_test_score_is_reported_alongside_the_cv_score(self):
+        self.upload()
+        response = self.client.post(self.url, {
+            "action": "train", "target": "Species",
+            "model_name": "tree", "test_size": "0.3",
+        })
+        test_score = response.context["best_test_accuracy"]
+        self.assertIsNotNone(test_score)
+        self.assertGreaterEqual(test_score, 0)
+        self.assertLessEqual(test_score, 100)
+
+    def test_cv_folds_and_test_score_are_persisted_on_the_run(self):
+        self.upload()
+        response = self.client.post(self.url, {
+            "action": "train", "target": "Species",
+            "model_name": "knn", "test_size": "0.3",
+        })
+        run = TrainingRun.objects.get()
+        self.assertEqual(run.cv_folds, response.context["cv_folds"])
+        self.assertEqual(run.held_out_test_score, response.context["best_test_accuracy"])
+
+    def test_too_little_data_falls_back_instead_of_crashing(self):
+        """A handful of rows cannot support k-fold cross-validation. The run
+        should still complete -- just without cross-validation -- rather than
+        raising, and the page should say so."""
+        data = b"a,b,label\n1,2,x\n2,3,x\n10,11,y\n11,12,y\n"
+        self.upload(data)
+        response = self.train(target="label", model_name="tree", test_size="0.5")
+        self.assertIsNone(self.error_in(response))
+        self.assertFalse(response.context["used_cross_validation"])
+
+
+class FeatureSelection(Project1Base):
+    """Decision: input features are the user's call, starting from a system
+    suggestion (identifier-like and near-unique columns pre-excluded)."""
+
+    IDENTIFIER_DATA = (
+        b"id,length,width,label\n"
+        b"1,5.0,3.0,x\n2,5.2,3.1,x\n3,5.1,2.9,x\n4,5.3,3.2,x\n"
+        b"5,7.0,3.5,y\n6,7.2,3.6,y\n7,7.1,3.4,y\n8,7.3,3.7,y\n"
+    )
+
+    def test_no_selection_falls_back_to_the_system_suggestion(self):
+        self.upload(self.IDENTIFIER_DATA, name="flowers.csv")
+        response = self.train(target="label")
+        self.assertIsNone(self.error_in(response))
+        self.assertCountEqual(
+            response.context["used_features"], ["length", "width"]
+        )
+
+    def test_user_can_drop_a_suggested_feature(self):
+        self.upload(self.IDENTIFIER_DATA, name="flowers.csv")
+        response = self.client.post(self.url, {
+            "action": "train", "target": "label", "model_name": "tree",
+            "test_size": "0.3", "features": ["width"],
+        })
+        self.assertIsNone(self.error_in(response))
+        self.assertEqual(response.context["used_features"], ["width"])
+
+    def test_user_can_add_back_an_ignored_column(self):
+        self.upload(self.IDENTIFIER_DATA, name="flowers.csv")
+        response = self.client.post(self.url, {
+            "action": "train", "target": "label", "model_name": "tree",
+            "test_size": "0.3", "features": ["id", "length", "width"],
+        })
+        self.assertIsNone(self.error_in(response))
+        self.assertIn("id", response.context["used_features"])
+
+    def train(self, model_name="tree", target="label", test_size="0.3"):
+        return self.client.post(self.url, {
+            "action": "train", "target": target,
+            "model_name": model_name, "test_size": test_size,
+        })
+
+
+class OutlierHandling(Project1Base):
+    """Decision: suspicious/outlier rows are flagged by the system, and
+    excluding them from training is the user's choice, not a default."""
+
+    # Twelve ordinary values clustered around 10, split across two balanced
+    # classes, plus one point at 500 -- verified with pandas' IQR rule (in
+    # the same way flag_outlier_rows does it) to flag exactly that one row.
+    OUTLIER_DATA = (
+        b"value,label\n"
+        b"9,a\n10,a\n10,a\n11,a\n9,a\n10,a\n"
+        b"10,b\n11,b\n9,b\n10,b\n10,b\n11,b\n"
+        b"500,a\n"
+    )
+
+    def train(self, exclude=False):
+        payload = {
+            "action": "train", "target": "label", "model_name": "tree",
+            "test_size": "0.3",
+        }
+        if exclude:
+            payload["exclude_outliers"] = "on"
+        return self.client.post(self.url, payload)
+
+    def test_outlier_is_flagged_but_kept_by_default(self):
+        self.upload(self.OUTLIER_DATA, name="outliers.csv")
+        response = self.train(exclude=False)
+        self.assertIsNone(self.error_in(response))
+        self.assertEqual(response.context["outliers_flagged"], 1)
+        self.assertEqual(response.context["outliers_excluded"], 0)
+        self.assertEqual(
+            response.context["training_rows"] + response.context["testing_rows"], 13
+        )
+
+    def test_excluding_flagged_outliers_removes_the_row(self):
+        self.upload(self.OUTLIER_DATA, name="outliers.csv")
+        response = self.train(exclude=True)
+        self.assertIsNone(self.error_in(response))
+        self.assertEqual(response.context["outliers_excluded"], 1)
+        self.assertEqual(
+            response.context["training_rows"] + response.context["testing_rows"], 12
+        )
+
+    def test_outliers_excluded_is_persisted_on_the_run(self):
+        self.upload(self.OUTLIER_DATA, name="outliers.csv")
+        self.train(exclude=True)
+        run = TrainingRun.objects.get()
+        self.assertEqual(run.outliers_excluded, 1)
+
+
+class MissingValueStrategy(Project1Base):
+    """Decision: missing values are handled automatically by default, and
+    that is adjustable -- a user can ask to drop incomplete rows instead."""
+
+    GAPPY_DATA = (
+        b"a,b,label\n1,2,x\n,3,x\n2,,x\n3,4,x\n"
+        b"10,11,y\n11,,y\n,12,y\n13,14,y\n"
+    )
+
+    def train(self, missing_strategy=None):
+        payload = {
+            "action": "train", "target": "label", "model_name": "tree",
+            "test_size": "0.3",
+        }
+        if missing_strategy:
+            payload["missing_strategy"] = missing_strategy
+        return self.client.post(self.url, payload)
+
+    def test_automatic_strategy_keeps_every_row(self):
+        self.upload(self.GAPPY_DATA, name="gappy.csv")
+        response = self.train()
+        self.assertIsNone(self.error_in(response))
+        self.assertEqual(
+            response.context["training_rows"] + response.context["testing_rows"], 8
+        )
+
+    def test_drop_strategy_removes_incomplete_rows(self):
+        self.upload(self.GAPPY_DATA, name="gappy.csv")
+        response = self.train(missing_strategy="drop")
+        self.assertIsNone(self.error_in(response))
+        # Four of the eight rows have a gap in "a" or "b"; only the four
+        # complete rows should remain once they are dropped.
+        self.assertEqual(
+            response.context["training_rows"] + response.context["testing_rows"], 4
+        )

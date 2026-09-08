@@ -54,6 +54,11 @@ session, the session backend is the database, and `db.sqlite3` is deliberately n
 committed. Skipping `migrate` makes the first CSV upload fail with
 `no such table: django_session`.
 
+Run `migrate` again after pulling changes to `project1/models.py` (or any new file
+under `project1/migrations/`) — Django only applies a migration once per database,
+so an out-of-date `db.sqlite3` will otherwise fail with a `no such column` error the
+first time a run tries to record a field that migration adds.
+
 ## Development
 
 `requirements-dev.txt` adds the two packages needed only to regenerate
@@ -79,7 +84,7 @@ runtime. Every dataset and model it needs is committed.
 python manage.py test
 ```
 
-55 tests across Projects 1 and 4, covering the model code and the views.
+67 tests across Projects 1 and 4, covering the model code and the views.
 
 ## Conventions
 

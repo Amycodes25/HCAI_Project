@@ -247,14 +247,10 @@
 }
 
 /* --- Working state ---------------------------------------------------------
-   The forms are submitted with fetch and the shell is swapped in place,
-so the
+   The forms are submitted with fetch and the shell is swapped in place, so the
    page never jumps. Dim it while that is in flight. */
 
 .project-shell,
-so the
-   page never jumps. Dim it while that is in flight. */
-
 .dashboard-main { transition: opacity .18s ease; }
 
 .project-shell.is-busy,
@@ -302,7 +298,8 @@ so the
 .control-list dd { margin: 0; color: var(--theme-muted); font-size: .8rem; line-height: 1.55; }
 
 .control-list dd.you,
-.control-list dd.us {
+.control-list dd.us,
+.control-list dd.split {
     padding: .12rem .45rem;
     border-radius: 999px;
     font-size: .68rem;
@@ -312,6 +309,7 @@ so the
 
 .control-list dd.you { color: #08765a; background: rgba(8, 118, 90, .12); }
 .control-list dd.us { color: var(--theme-muted); background: rgba(153, 153, 214, .16); }
+.control-list dd.split { color: #a15d00; background: rgba(240, 162, 2, .16); white-space: nowrap; }
 
 .control-list dd:last-child { grid-column: 1 / -1; }
 
@@ -359,3 +357,37 @@ so the
 
 .run-history h3 { margin: 0 0 .3rem; color: var(--theme-coffee); font-size: 1rem; }
 .run-history .table-container { margin-top: 1rem; }
+
+/* --- Feature checklist and other checkbox controls --------------------------
+   Input-feature inclusion and outlier exclusion are both "system suggests,
+   user decides" controls, so both render as plain labelled checkboxes rather
+   than as a select -- there is no single "chosen" value to show back. */
+
+.checkbox-line {
+    display: flex;
+    gap: .55rem;
+    align-items: flex-start;
+    cursor: pointer;
+}
+
+.checkbox-line input[type="checkbox"] {
+    width: 17px;
+    height: 17px;
+    margin-top: .15rem;
+    accent-color: var(--theme-jet);
+    flex-shrink: 0;
+}
+
+.feature-grid {
+    display: grid;
+    gap: .5rem .9rem;
+    margin-top: .6rem;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+.feature-reason {
+    display: block;
+    color: var(--theme-muted);
+    font-size: .68rem;
+    font-weight: 500;
+}

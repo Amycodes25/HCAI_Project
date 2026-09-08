@@ -180,6 +180,11 @@
                         {{ default_target }}
                     </div>
                 </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Outliers flagged</div>
+                    <div class="stat-value">{{ outlier_count }}</div>
+                </div>
             </div>
 
             <div class="table-container">
@@ -398,6 +403,77 @@
                         </select>
                     </div>
 
+                    <div class="form-group">
+                        <label for="missing_strategy">Missing values</label>
+
+                        <select id="missing_strategy" name="missing_strategy">
+                            <option value="auto"
+                                {% if selected_missing_strategy == "auto" %}selected{% endif %}>
+                                Fill in automatically
+                            </option>
+                            <option value="drop"
+                                {% if selected_missing_strategy == "drop" %}selected{% endif %}>
+                                Drop rows with gaps instead
+                            </option>
+                        </select>
+
+                        <p class="helper-text">
+                            Automatic fills numeric gaps with the column's median and
+                            categorical gaps with its most common value.
+                        </p>
+                    </div>
+
+                    {% if outlier_count %}
+                        <div class="form-group">
+                            <label for="exclude_outliers">Outlier rows</label>
+
+                            <label class="checkbox-line" for="exclude_outliers">
+                                <input
+                                    type="checkbox"
+                                    id="exclude_outliers"
+                                    name="exclude_outliers"
+                                    {% if exclude_outliers %}checked{% endif %}
+                                >
+                                <span>Exclude the {{ outlier_count }} flagged row{{ outlier_count|pluralize }} from training</span>
+                            </label>
+
+                            <p class="helper-text">
+                                Flagged automatically (values far outside the typical
+                                range for their column). Left in unless you exclude them.
+                            </p>
+                        </div>
+                    {% endif %}
+
+                    <div class="form-group full">
+                        <label>Input features</label>
+
+                        <p class="helper-text">
+                            Pre-selected columns are the system's suggestion (identifier-
+                            and near-unique columns are left out). Add one back, or drop
+                            a suggested one, before training.
+                        </p>
+
+                        <div class="feature-grid">
+                            {% for feature in feature_options %}
+                                <label class="checkbox-line" for="feature-{{ forloop.counter }}">
+                                    <input
+                                        type="checkbox"
+                                        id="feature-{{ forloop.counter }}"
+                                        name="features"
+                                        value="{{ feature.name }}"
+                                        {% if feature.name in checked_features %}checked{% endif %}
+                                    >
+                                    <span>
+                                        {{ feature.name }}
+                                        {% if feature.reason %}
+                                            <small class="feature-reason">({{ feature.reason }})</small>
+                                        {% endif %}
+                                    </span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
                     <div class="form-group full">
                         <button class="button success" type="submit">
                             Train and tune model
@@ -436,7 +512,13 @@
                 </div>
 
                 <div class="result-box">
-                    <div class="label">Best test accuracy</div>
+                    <div class="label">
+                        {% if used_cross_validation %}
+                            Best cross-validated score ({{ cv_folds }}-fold)
+                        {% else %}
+                            Best training score
+                        {% endif %}
+                    </div>
                     <div class="value accuracy-value">
                         {{ best_accuracy }}%
                     </div>
@@ -448,7 +530,39 @@
                         ></div>
                     </div>
                 </div>
+
+                <div class="result-box">
+                    <div class="label">Held-out test score</div>
+                    <div class="value accuracy-value">
+                        {{ best_test_accuracy }}%
+                    </div>
+
+                    <div class="progress-track">
+                        <div
+                            class="progress-bar"
+                            style="width: {{ best_test_accuracy }}%;"
+                        ></div>
+                    </div>
+
+                    <p class="helper-text" style="margin-top: .6rem;">
+                        Measured once, on data the configuration above was never
+                        chosen against.
+                    </p>
+                </div>
             </div>
+
+            {% if not used_cross_validation %}
+                <p class="helper-text" style="margin-top: .4rem;">
+                    Too little training data for cross-validation this run; the
+                    score above is a training-set score instead.
+                </p>
+            {% endif %}
+
+            {% if outliers_excluded %}
+                <p class="helper-text" style="margin-top: .4rem;">
+                    {{ outliers_excluded }} flagged outlier row{{ outliers_excluded|pluralize }} excluded before training.
+                </p>
+            {% endif %}
 
             <div class="stats-grid">
                 <div class="stat-card">
@@ -480,12 +594,23 @@
                 Hyperparameter Comparison
             </h3>
 
+            <p class="helper-text" style="margin-bottom: .6rem;">
+                {% if used_cross_validation %}
+                    Each value's score is its mean across {{ cv_folds }} cross-validation
+                    folds of the training set &mdash; the test set plays no part in this
+                    comparison, only in the held-out score above.
+                {% else %}
+                    Too little training data for cross-validation; scores are on the
+                    training set itself.
+                {% endif %}
+            </p>
+
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
                             <th>{{ parameter_name }}</th>
-                            <th>Test accuracy</th>
+                            <th>{% if used_cross_validation %}CV score{% else %}Training score{% endif %}</th>
                             <th>Performance</th>
                         </tr>
                     </thead>
@@ -536,12 +661,16 @@
                 <dl class="control-list">
                     <div><dt>Dataset</dt><dd class="you">You</dd><dd>Any CSV, with the label in the last column.</dd></div>
                     <div><dt>Target column</dt><dd class="you">You</dd><dd>Suggested from the column name, but yours to override.</dd></div>
+                    <div><dt>Input features</dt><dd class="you">You</dd><dd>The checklist pre-selects the system's suggestion; add a column back or drop one before training.</dd></div>
                     <div><dt>Train/test split</dt><dd class="you">You</dd><dd>The trade-off between fitting and measuring is a judgement, not a default.</dd></div>
                     <div><dt>Model family</dt><dd class="you">You</dd><dd>The families differ in what they can express and how readable they are.</dd></div>
                     <div><dt>Score</dt><dd class="you">You</dd><dd>Accuracy and F1 disagree on imbalanced data, and only you know which mistake costs more.</dd></div>
+                    <div><dt>Outlier rows</dt><dd class="split">System flags &middot; you decide</dd><dd>Extreme values are marked automatically; excluding them from training is a checkbox, not a default.</dd></div>
+                    <div><dt>Missing values</dt><dd class="split">Automatic &middot; adjustable</dd><dd>Filled in by default (median or most-common category); you can ask to drop those rows instead.</dd></div>
                     <div><dt>Hyperparameter range</dt><dd class="us">Us</dd><dd>Fixed per family. Choosing a range well needs knowledge of the model that the interface should not demand.</dd></div>
-                    <div><dt>Preprocessing</dt><dd class="us">Us</dd><dd>Median imputation, scaling, one-hot encoding. Mechanical given the column types.</dd></div>
-                    <div><dt>Identifier columns</dt><dd class="us">Us</dd><dd>Detected and dropped, then listed above so the decision stays visible.</dd></div>
+                    <div><dt>Cross-validation</dt><dd class="us">Us</dd><dd>Every hyperparameter value is scored by k-fold cross-validation on the training set alone, so picking a winner never peeks at the test set.</dd></div>
+                    <div><dt>Preprocessing</dt><dd class="us">Us</dd><dd>Scaling and one-hot encoding. Mechanical given the column types.</dd></div>
+                    <div><dt>Identifier columns</dt><dd class="us">Us</dd><dd>Detected and suggested for exclusion, then listed above so the decision stays visible and reversible.</dd></div>
                     <div><dt>Problem type</dt><dd class="us">Us</dd><dd>Classification only. Regression is not supported, and the app says so rather than guessing.</dd></div>
                 </dl>
             </div>
@@ -554,7 +683,7 @@
 
             {% if ignored_features %}
                 <p class="helper-text" style="margin-top: 8px;">
-                    Automatically ignored columns:
+                    Not used:
                     {{ ignored_features|join:", " }}
                 </p>
             {% endif %}
@@ -587,7 +716,10 @@
                                     <th>Target</th>
                                     <th>Score</th>
                                     <th>Split</th>
-                                    <th>Result</th>
+                                    <th>CV</th>
+                                    <th>Outliers excl.</th>
+                                    <th>CV result</th>
+                                    <th>Test result</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -598,7 +730,10 @@
                                         <td>{{ run.target }}</td>
                                         <td>{{ run.score_label }}</td>
                                         <td>{{ run.training_rows }}/{{ run.testing_rows }}</td>
+                                        <td>{% if run.cv_folds %}{{ run.cv_folds }}-fold{% else %}&ndash;{% endif %}</td>
+                                        <td>{{ run.outliers_excluded }}</td>
                                         <td>{{ run.best_score }}%</td>
+                                        <td>{% if run.held_out_test_score != None %}{{ run.held_out_test_score }}%{% else %}&ndash;{% endif %}</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>

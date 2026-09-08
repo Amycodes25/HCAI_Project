@@ -1,5 +1,6 @@
 import base64
 import csv
+import math
 from io import BytesIO, StringIO
 
 import matplotlib
@@ -18,8 +19,9 @@ from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (accuracy_score, balanced_accuracy_score,
-                             confusion_matrix, f1_score)
-from sklearn.model_selection import train_test_split
+                             confusion_matrix, f1_score, make_scorer)
+from sklearn.model_selection import (KFold, StratifiedKFold, cross_val_score,
+                                     train_test_split)
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
@@ -110,11 +112,15 @@ def choose_default_target(available_columns):
 
 def get_model_feature_columns(df, target):
     """
-    Select useful model-input columns.
+    Suggest useful model-input columns.
 
-    Very high-cardinality categorical columns are ignored because columns
+    Very high-cardinality categorical columns are flagged because columns
     such as passenger names, ticket numbers, and cabin numbers often act
-    like identifiers and can create many one-hot-encoded features.
+    like identifiers and can create many one-hot-encoded features. This is
+    only ever a *suggestion*: the interface pre-selects these columns for
+    the user, but the user can add back an ignored column or drop a
+    suggested one before training (decision: "Feature inclusion: user, with
+    system suggestions").
     """
     usable_columns = []
     ignored_columns = []
@@ -143,6 +149,70 @@ def get_model_feature_columns(df, target):
         usable_columns.append(column)
 
     return usable_columns, ignored_columns
+
+
+def build_feature_options(df, available_columns, target):
+    """Describe every candidate feature column for the checklist in the UI.
+
+    Each entry says whether the system suggests including it, and why not
+    when it does not, so the user is overriding a visible reason rather than
+    guessing at one.
+    """
+    suggested, ignored = get_model_feature_columns(df, target)
+    reasons = {}
+
+    for column in ignored:
+        if is_identifier_column(column):
+            reasons[column] = "looks like an identifier column"
+        else:
+            reasons[column] = "mostly unique values, like an identifier"
+
+    options = []
+    for column in available_columns:
+        if column == target:
+            continue
+        options.append({
+            "name": column,
+            "suggested": column in suggested,
+            "reason": reasons.get(column),
+        })
+
+    return options, suggested
+
+
+# -------------------------------------------------------------------
+# OUTLIER DETECTION
+# -------------------------------------------------------------------
+
+def flag_outlier_rows(df, numeric_columns):
+    """Flag rows with an unusually extreme value in any numeric column.
+
+    Uses Tukey's IQR rule (1.5x the interquartile range beyond the first or
+    third quartile) independently on each numeric column, and a row counts
+    as flagged if it is extreme on at least one of them. This is the
+    "system flags" half of the decision; nothing is ever dropped here, only
+    marked -- the "user decides" half happens in the view, where a user can
+    choose to exclude the flagged rows from training or leave them in.
+    """
+    flagged = pd.Series(False, index=df.index)
+
+    for column in numeric_columns:
+        series = df[column]
+        first_quartile = series.quantile(0.25)
+        third_quartile = series.quantile(0.75)
+        spread = third_quartile - first_quartile
+
+        # A column that is constant (or nearly so) has a zero interquartile
+        # range, which would make every differing value count as extreme.
+        # There is nothing meaningful to flag on a column like that.
+        if not spread or pd.isna(spread):
+            continue
+
+        lower_bound = first_quartile - 1.5 * spread
+        upper_bound = third_quartile + 1.5 * spread
+        flagged |= (series < lower_bound) | (series > upper_bound)
+
+    return flagged.fillna(False)
 
 
 # -------------------------------------------------------------------
@@ -239,7 +309,7 @@ def encode_figure(figure):
     return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
 
-def create_sweep_plot(results, parameter_name, score_label):
+def create_sweep_plot(results, parameter_name, score_label, used_cv):
     """The score against the swept hyperparameter.
 
     The table already carries the numbers; the plot carries the shape, which is
@@ -260,7 +330,10 @@ def create_sweep_plot(results, parameter_name, score_label):
                   ha="center", fontsize=9, color="#a62942")
 
     axis.set_xlabel(parameter_name)
-    axis.set_ylabel(f"{score_label} (%)")
+    y_axis_label = (
+        f"Cross-validated {score_label} (%)" if used_cv else f"{score_label} (%)"
+    )
+    axis.set_ylabel(y_axis_label)
     axis.set_title(f"{score_label} against {parameter_name.lower()}",
                    fontsize=10, pad=10)
     return encode_figure(figure)
@@ -284,8 +357,8 @@ def create_confusion_matrix_plot(y_true, y_pred, labels):
     axis.set_yticks(range(len(labels)), [str(label) for label in labels])
     axis.set_xlabel("Predicted", color=MUTED)
     axis.set_ylabel("Actual", color=MUTED)
-    axis.set_title("Confusion matrix, best configuration", fontsize=10,
-                   color=INK, pad=10)
+    axis.set_title("Confusion matrix, best configuration (held-out test set)",
+                   fontsize=10, color=INK, pad=10)
     axis.tick_params(colors=MUTED, labelsize=8)
     for spine in axis.spines.values():
         spine.set_color(GRID)
@@ -318,6 +391,11 @@ def create_preprocessor(X):
     Categorical columns:
         - fill missing values with the most frequent category
         - convert categories using one-hot encoding
+
+    This always runs, even when the user chose to drop rows with missing
+    values instead of imputing them (see `missing_strategy` in the view):
+    with no missing values left, the imputer step is simply a no-op, so
+    there is no need for a second preprocessing path.
     """
     numerical_columns = X.select_dtypes(
         include=["number", "bool"]
@@ -372,6 +450,36 @@ def create_preprocessor(X):
     )
 
     return preprocessor, numerical_columns, categorical_columns
+
+
+# -------------------------------------------------------------------
+# CROSS-VALIDATION
+# -------------------------------------------------------------------
+
+def build_cv_splitter(y_train, requested_splits=5):
+    """Choose a cross-validation scheme that the training data can support.
+
+    Stratified k-fold is preferred, so that every fold sees every class in
+    roughly the same proportion, but it requires each class to appear at
+    least as many times as there are folds. With very little data (or a
+    class with a single example) that requirement cannot be met, so this
+    falls back to plain k-fold, and finally to `None` -- meaning there is
+    not enough data for cross-validation at all -- rather than raising.
+    """
+    n_samples = len(y_train)
+
+    if n_samples < 4:
+        return None
+
+    class_counts = y_train.value_counts()
+    smallest_class = int(class_counts.min())
+
+    if smallest_class >= 2:
+        n_splits = max(2, min(requested_splits, smallest_class))
+        return StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
+
+    n_splits = max(2, min(requested_splits, n_samples))
+    return KFold(n_splits=n_splits, shuffle=True, random_state=42)
 
 
 # -------------------------------------------------------------------
@@ -438,11 +546,22 @@ def evaluate_model_hyperparameters(
     y_train,
     y_test,
     score_name="accuracy",
+    cv_folds=5,
 ):
     """Train one model family across its hyperparameter values.
 
-    Returns the sweep, the best configuration, and the fitted best pipeline so
-    the caller can report a confusion matrix for it.
+    For every candidate hyperparameter value, the value is scored with
+    k-fold cross-validation *on the training set only*, and the value with
+    the best mean cross-validated score is selected. Only then is that one
+    winning configuration measured against the held-out test set. Selecting
+    hyperparameters directly against the test set (which is what this
+    function used to do) would let the test set leak into the choice of
+    "best" model, so the number reported for it would flatter the model
+    rather than estimate how it does on new data.
+
+    Returns the sweep (mean cross-validated score per hyperparameter value),
+    the best configuration, its genuine held-out test score, and the fitted
+    best pipeline so the caller can report a confusion matrix for it.
     """
     if model_name not in MODEL_SPECS:
         raise ValueError("Unknown machine-learning model selected.")
@@ -451,15 +570,35 @@ def evaluate_model_hyperparameters(
         raise ValueError("Unknown score selected.")
 
     spec = MODEL_SPECS[model_name]
-    scorer = SCORERS[score_name]["score"]
+    scorer_function = SCORERS[score_name]["score"]
+    sklearn_scorer = make_scorer(scorer_function)
 
     preprocessor, numerical_columns, categorical_columns = (
         create_preprocessor(X_train)
     )
 
+    splitter = build_cv_splitter(y_train, cv_folds)
+
     values = spec["values"]
     if model_name == "knn":
-        values = [value for value in values if value <= len(X_train)]
+        if splitter is not None:
+            # KNN needs at least as many neighbours as there are training
+            # points *in each fold*, not in the whole of X_train -- a fold's
+            # training portion is smaller than X_train by construction. Using
+            # len(X_train) here would let a value through that only some
+            # folds can actually fit, which cross_val_score would silently
+            # turn into a NaN score rather than an error, and NaN comparisons
+            # can make max() pick it as the "best" result.
+            n_splits = splitter.get_n_splits()
+            smallest_fold_training_size = len(X_train) - math.ceil(
+                len(X_train) / n_splits
+            )
+            values = [
+                value for value in values
+                if value <= smallest_fold_training_size
+            ]
+        else:
+            values = [value for value in values if value <= len(X_train)]
 
     results = []
     fitted = {}
@@ -471,14 +610,31 @@ def evaluate_model_hyperparameters(
                 ("model", spec["build"](value)),
             ]
         )
+
+        if splitter is not None:
+            cv_scores = cross_val_score(
+                pipeline, X_train, y_train, cv=splitter, scoring=sklearn_scorer
+            )
+            mean_score = cv_scores.mean()
+        else:
+            # Too little training data for cross-validation (see
+            # build_cv_splitter). Falling back to the training score is
+            # optimistic, but it only ever happens on tiny, edge-case
+            # datasets, and the held-out test score below is unaffected.
+            pipeline.fit(X_train, y_train)
+            mean_score = scorer_function(y_train, pipeline.predict(X_train))
+
+        # Cross-validation only scores the value; the pipeline it leaves
+        # behind was fit on a fold, not on the full training set. Refit on
+        # all of it so the stored pipeline is the one that would actually be
+        # used to predict on new data.
         pipeline.fit(X_train, y_train)
-        predictions = pipeline.predict(X_test)
 
         label = "Unlimited" if value is None else value
         results.append(
             {
                 "parameter": label,
-                "accuracy": round(scorer(y_test, predictions) * 100, 2),
+                "accuracy": round(mean_score * 100, 2),
             }
         )
         fitted[label] = pipeline
@@ -490,15 +646,20 @@ def evaluate_model_hyperparameters(
 
     best = max(results, key=lambda result: result["accuracy"])
     best_pipeline = fitted[best["parameter"]]
+    best_test_accuracy = round(
+        scorer_function(y_test, best_pipeline.predict(X_test)) * 100, 2
+    )
 
     return {
         "parameter_name": spec["parameter_name"],
         "results": results,
         "best_parameter": best["parameter"],
         "best_accuracy": best["accuracy"],
+        "best_test_accuracy": best_test_accuracy,
         "best_pipeline": best_pipeline,
         "numerical_columns": numerical_columns,
         "categorical_columns": categorical_columns,
+        "cv_splits_used": splitter.get_n_splits() if splitter is not None else 0,
     }
 
 
@@ -514,6 +675,7 @@ def index(request):
             for name, spec in SCORERS.items()
         ],
         "selected_score": request.POST.get("score_name", "accuracy"),
+        "selected_missing_strategy": request.POST.get("missing_strategy", "auto"),
     }
 
     # Clear the saved dataset and start a fresh session state.
@@ -604,6 +766,29 @@ def index(request):
 
             default_target = choose_default_target(available_columns)
 
+            # The target may already have been chosen (it appears on both
+            # the explorer and the configuration forms), so base the feature
+            # suggestion on that when it is available. This is only ever a
+            # starting point for the checklist below: the target actually
+            # used for training is re-read, and re-validated, further down.
+            target_for_suggestion = (
+                request.POST.get("target")
+                or request.POST.get("plot_target")
+                or default_target
+            )
+            if target_for_suggestion not in available_columns:
+                target_for_suggestion = default_target
+
+            feature_options, suggested_features = build_feature_options(
+                df, available_columns, target_for_suggestion
+            )
+
+            outlier_preview_columns = [
+                column for column in numeric_columns
+                if column != target_for_suggestion
+            ]
+            outlier_preview_flags = flag_outlier_rows(df, outlier_preview_columns)
+
             context["data_filename"] = request.session.get("data_filename")
             context["data_preview"] = df.head().to_html(
                 classes="data-table",
@@ -614,6 +799,9 @@ def index(request):
             context["default_target"] = default_target
             context["row_count"] = len(df)
             context["column_count"] = len(df.columns)
+            context["feature_options"] = feature_options
+            context["checked_features"] = suggested_features
+            context["outlier_count"] = int(outlier_preview_flags.sum())
 
         # =========================================================
         # ACTION 2: SCATTER PLOT
@@ -700,24 +888,73 @@ def index(request):
                     "The target column does not exist."
                 )
 
-            feature_columns, ignored_columns = get_model_feature_columns(
-                df=df,
-                target=target,
+            # Feature inclusion: the system suggests which columns to use
+            # (identifier-like and near-unique columns are pre-excluded),
+            # but the checklist in the form lets the user add a suggested-
+            # against column back in or drop a suggested one. No selection
+            # at all (for instance a very first request, before the
+            # checklist has rendered once) falls back to the suggestion.
+            suggested_feature_columns, suggested_ignored_columns = (
+                get_model_feature_columns(df, target)
             )
+            requested_features = [
+                column for column in request.POST.getlist("features")
+                if column in available_columns and column != target
+            ]
+
+            if requested_features:
+                feature_columns = requested_features
+                ignored_columns = [
+                    column for column in available_columns
+                    if column != target and column not in feature_columns
+                ]
+            else:
+                feature_columns = suggested_feature_columns
+                ignored_columns = suggested_ignored_columns
 
             if not feature_columns:
                 raise ValueError(
-                    "No usable input features remain after removing "
-                    "identifier and high-cardinality columns."
+                    "Select at least one input feature."
                 )
 
             model_data = df[
                 feature_columns + [target]
             ].dropna(subset=[target])
 
+            # Missing values: automatic imputation (median for numerical
+            # columns, most-frequent category for categorical ones) is the
+            # default, but the user can instead ask to drop any row with a
+            # gap. Dropping happens here, before the split; the imputer in
+            # the preprocessing pipeline still runs afterwards regardless,
+            # but has nothing left to do when this option is chosen.
+            missing_strategy = request.POST.get("missing_strategy", "auto")
+            if missing_strategy not in {"auto", "drop"}:
+                missing_strategy = "auto"
+
+            if missing_strategy == "drop":
+                model_data = model_data.dropna()
+
+            # Suspicious/outlier rows: flagged automatically on the numeric
+            # feature columns actually being used, using the same rule as
+            # the dataset-overview preview above. The user decides, with a
+            # checkbox, whether flagged rows are excluded from this run.
+            numeric_feature_columns = [
+                column for column in feature_columns
+                if pd.api.types.is_numeric_dtype(df[column])
+            ]
+            outlier_flags = flag_outlier_rows(model_data, numeric_feature_columns)
+            outliers_flagged = int(outlier_flags.sum())
+            exclude_outliers = request.POST.get("exclude_outliers") == "on"
+            outliers_excluded = 0
+
+            if exclude_outliers and outliers_flagged:
+                model_data = model_data.loc[~outlier_flags]
+                outliers_excluded = outliers_flagged
+
             if model_data.empty:
                 raise ValueError(
-                    "No rows remain after removing missing target values."
+                    "No rows remain after removing missing target values, "
+                    "and applying the missing-value and outlier settings."
                 )
 
             X = model_data[feature_columns]
@@ -762,6 +999,7 @@ def index(request):
 
             best_pipeline = evaluation["best_pipeline"]
             class_labels = sorted(y.unique().tolist(), key=str)
+            used_cross_validation = evaluation["cv_splits_used"] > 0
 
             context["score_name"] = score_name
             context["score_label"] = SCORERS[score_name]["label"]
@@ -770,6 +1008,7 @@ def index(request):
                 evaluation["results"],
                 evaluation["parameter_name"],
                 SCORERS[score_name]["label"],
+                used_cross_validation,
             )
             context["confusion_plot"] = create_confusion_matrix_plot(
                 y_test, best_pipeline.predict(X_test), class_labels
@@ -791,6 +1030,9 @@ def index(request):
                     score_label=SCORERS[score_name]["label"],
                     best_parameter=str(evaluation["best_parameter"]),
                     best_score=evaluation["best_accuracy"],
+                    held_out_test_score=evaluation["best_test_accuracy"],
+                    cv_folds=evaluation["cv_splits_used"],
+                    outliers_excluded=outliers_excluded,
                     training_rows=len(X_train),
                     testing_rows=len(X_test),
                 )
@@ -807,12 +1049,20 @@ def index(request):
             context["selected_model_value"] = model_name
             context["selected_target"] = target
             context["selected_test_size"] = str(test_size)
+            context["selected_missing_strategy"] = missing_strategy
+            context["exclude_outliers"] = exclude_outliers
+            context["outliers_flagged"] = outliers_flagged
+            context["outliers_excluded"] = outliers_excluded
             context["parameter_name"] = evaluation["parameter_name"]
             context["hyperparameter_results"] = evaluation["results"]
             context["best_parameter"] = evaluation["best_parameter"]
             context["best_accuracy"] = evaluation["best_accuracy"]
+            context["best_test_accuracy"] = evaluation["best_test_accuracy"]
+            context["used_cross_validation"] = used_cross_validation
+            context["cv_folds"] = evaluation["cv_splits_used"]
             context["used_features"] = feature_columns
             context["ignored_features"] = ignored_columns
+            context["checked_features"] = feature_columns
             context["numerical_model_features"] = (
                 evaluation["numerical_columns"]
             )
