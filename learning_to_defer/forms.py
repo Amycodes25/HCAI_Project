@@ -19,7 +19,7 @@ class ArticleClassificationForm(forms.Form):
         widget=forms.Textarea(
             attrs={
                 "rows": 8,
-                "placeholder": "Paste the article text here...",
+                "placeholder": "Paste the headline together with the article description or body text...",
             }
         ),
     )

@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+{% load static %}
+{% load assets %}
+
+
+{% block extra_css %}
+
+<link
+    rel="stylesheet"
+    href="{% vstatic 'learning_to_defer/style.css' %}"
+>
+
+<link
+    rel="stylesheet"
+    href="{% vstatic 'learning_to_defer/project_theme.css' %}"
+>
+
+{% endblock %}
+
+
+{% block content %}
+
+
+<main class="project-shell">
+
+
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
+
+    <header class="page-header">
+
+        <p class="eyebrow">
+            User Study
+        </p>
+
+
+        {% if completed %}
+
+            <h1>
+                Study completed
+            </h1>
+
+            <p>
+                Thank you for taking part in the
+                news classification study.
+            </p>
+
+
+        {% else %}
+
+            <h1>
+                Classify the news article
+            </h1>
+
+            <p>
+                Read the article and select the category that
+                best represents its main topic.
+            </p>
+
+        {% endif %}
+
+    </header>
+
+
+
+    <!-- =====================================================
+         ARTICLE POOL ERROR
+         ===================================================== -->
+
+    {% if not pool_available %}
+
+        <section class="status-card">
+
+            <div>
+
+                <h2>
+                    Study is temporarily unavailable
+                </h2>
+
+                <p>
+                    The article pool could not be loaded.
+                    Please contact the study organiser.
+                </p>
+
+            </div>
+
+        </section>
+
+
+
+    <!-- =====================================================
+         STUDY COMPLETED
+         ===================================================== -->
+
+    {% elif completed %}
+
+        <section class="completion-card">
+
+            <span class="completion-icon">
+                ✓
+            </span>
+
+
+            <h2>
+                Thank you for participating
+            </h2>
+
+
+            <p>
+                You have completed all
+                {{ answered_count }}
+                article classifications.
+            </p>
+
+
+            <p>
+                Your responses have been recorded.
+            </p>
+            {% if study_id %}
+
+                <p class="study-id">
+                    Anonymous Study ID:
+                    <strong>{{ study_id }}</strong>
+                </p>
+
+            {% endif %}
+
+
+            <a
+                class="primary-button"
+                href="{% url 'learning_to_defer:overview' %}"
+            >
+                Back to Project Overview
+            </a>
+
+        </section>
+
+
+
+    <!-- =====================================================
+         ACTIVE STUDY
+         ===================================================== -->
+
+    {% else %}
+    <!-- ======================
+     STUDY TOOLBAR
+     ====================== -->
+
+<div class="study-toolbar">
+
+    <section class="human-stats">
+
+        <article>
+
+            <span>
+                Progress
+            </span>
+
+            <strong>
+                {{ current_article.number }}
+                /
+                {{ current_article.total }}
+            </strong>
+
+        </article>
+
+    </section>
+
+
+    <a
+        class="secondary-button"
+        href="{% url 'learning_to_defer:overview' %}"
+    >
+        ← Back to Project Overview
+    </a>
+
+</div>
+
+                <!-- ======================
+             PROGRESS BAR
+             ====================== -->
+
+        <progress
+            class="study-progress"
+            value="{{ answered_count }}"
+            max="{{ current_article.total }}"
+            aria-label="Study progress"
+        >
+            {{ answered_count }}
+            of
+            {{ current_article.total }}
+        </progress>
+
+
+
+        <!-- =================================================
+             ARTICLE CARD
+             ================================================= -->
+
+        <section class="labelling-card">
+
+
+            <!-- ARTICLE NUMBER -->
+
+            <div class="article-meta">
+
+                <span>
+                    Article
+                </span>
+
+                <strong>
+                    {{ current_article.number }}
+                    of
+                    {{ current_article.total }}
+                </strong>
+
+            </div>
+
+
+
+            <!-- ARTICLE TEXT -->
+
+            <article class="news-article">
+
+                {{ current_article.text }}
+
+            </article>
+
+
+
+            <!-- =================================================
+                 CATEGORY REMINDER
+                 ================================================= -->
+
+            <div class="study-notice">
+
+                <strong>
+                    Category reminder
+                </strong>
+
+                <p>
+                    World · Sports · Business · Sci/Tech
+                </p>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 PARTICIPANT RESPONSE FORM
+                 ================================================= -->
+
+            <form
+                method="post"
+                class="label-form"
+            >
+
+                {% csrf_token %}
+
+
+                <fieldset>
+
+                    <legend>
+                        Which category best describes
+                        this article?
+                    </legend>
+
+
+                    {{ form.label }}
+
+                </fieldset>
+
+
+
+                {% if form.label.errors %}
+
+                    <p class="form-error">
+                        Please choose one category
+                        before continuing.
+                    </p>
+
+                {% endif %}
+
+
+
+                <button
+                    class="primary-button"
+                    type="submit"
+                >
+                    Submit and continue
+                </button>
+
+            </form>
+
+
+        </section>
+
+
+    {% endif %}
+
+
+</main>
+
+
+{% endblock %}

@@ -8,3 +8,4 @@ learning_to_defer/artifacts/user_study_results/
 # Python cache
 __pycache__/
 *.pyc
+db.sqlite3

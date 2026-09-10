@@ -7,194 +7,210 @@
 {% endblock %}
 
 {% block content %}
-<div class="overview-dashboard">
-    <a class="skip-link" href="#dashboard-content">Skip to dashboard content</a>
 
-    <aside class="dashboard-sidebar" aria-label="Project navigation">
-        <div>
-            <a class="sidebar-up" href="{% url 'home:index' %}">
-                <span aria-hidden="true">&larr;</span> HCAI &middot; Group 29
-            </a>
+<main class="project-landing">
 
-            <a class="brand" href="{% url 'learning_to_defer:overview' %}">
-                <span class="brand-mark" aria-hidden="true">H·AI</span>
-                <span>
-                    <strong>NewsLens</strong>
-                    <small>Learning-to-Defer</small>
-                </span>
-            </a>
+    <!-- TOP BAR -->
+    <header class="landing-header">
+        <a class="back-link" href="{% url 'home:index' %}">
+            ← HCAI · Group 29
+        </a>
 
-            <p class="nav-label">Project workspace</p>
-            <nav class="sidebar-nav">
-                <a class="active" href="{% url 'learning_to_defer:overview' %}" aria-current="page">
-                    <span>Overview</span><small>Dashboard</small>
-                </a>
-                <a href="{% url 'learning_to_defer:baseline' %}">
-                    <span>Task 1</span><small>Baseline AI</small>
-                </a>
-                <a href="{% url 'learning_to_defer:simulated_expert' %}">
-                    <span>Task 2</span><small>Simulated expert</small>
-                </a>
-                <a href="{% url 'learning_to_defer:learning_to_defer' %}">
-                    <span>Task 3</span><small>Learn to defer</small>
-                </a>
-                <a href="{% url 'learning_to_defer:active_learning' %}">
-                    <span>Task 4</span><small>Active learning</small>
-                </a>
-                <a href="{% url 'learning_to_defer:human_expert' %}">
-                    <span>Task 5</span><small>Human expert</small>
-                </a>
-            </nav>
+        <div class="project-label">
+            Project 3 · Learning-to-Defer
+        </div>
+    </header>
+
+
+    <!-- HERO -->
+    <section class="landing-hero">
+
+        <div class="hero-content">
+
+            <p class="eyebrow">
+                Human + AI Decision Making
+            </p>
+
+            <h1>
+                Learning when to answer.<br>
+                <span>Learning when to defer.</span>
+            </h1>
+
+            <p class="hero-description">
+                A human–AI news classification study investigating when an
+                AI system should make a prediction and when human input is
+                more valuable.
+            </p>
+
+            <p class="hero-note">
+                Project 3 · Human-Centric Artificial Intelligence
+            </p>
+
         </div>
 
-        <div class="sidebar-footer">
-            <p>Human-Centric Artificial Intelligence</p>
-            <strong>Project 3 · Group 29</strong>
-        </div>
-    </aside>
 
-    <main class="dashboard-main" id="dashboard-content">
-        <header class="dashboard-topbar">
+        <!-- MINIMAL DECISION VISUAL -->
+        <div class="hero-visual" aria-label="Human and AI decision making">
+
+            <div class="visual-heading">
+                DECISION PROCESS
+            </div>
+
+            <div class="decision-row">
+                <span class="decision-source">AI</span>
+
+                <div class="decision-line">
+                    <span class="decision-dot"></span>
+                </div>
+            </div>
+
+            <div class="decision-centre">
+                <span>ANSWER</span>
+                <small>or</small>
+                <span>DEFER</span>
+            </div>
+
+            <div class="decision-row reverse">
+                <span class="decision-source">HUMAN</span>
+
+                <div class="decision-line">
+                    <span class="decision-dot"></span>
+                </div>
+            </div>
+
+            <p class="visual-caption">
+                The system learns when human expertise can improve the final decision.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- PRIMARY ACTIONS -->
+    <section class="primary-actions" aria-label="Project actions">
+
+        <a
+            class="primary-card study-card"
+            href="{% url 'learning_to_defer:user_study_intro' %}"
+        >
             <div>
-                <p class="breadcrumb">Project 3 / Overview</p>
-                <h2>Learning-to-Defer Dashboard</h2>
-            </div>
-            <div class="topbar-actions">
-                <a class="button button-light" href="{% static 'learning_to_defer/report.pdf' %}" target="_blank" rel="noopener">
-                    View report
-                </a>
-                <a class="button button-dark" href="{% url 'learning_to_defer:classify' %}">
-                    Classify an article
-                </a>
-            </div>
-        </header>
+                <p class="card-kicker">PARTICIPATE</p>
 
-        <section class="dashboard-hero" aria-labelledby="hero-title">
-            <div class="hero-copy">
-                <p class="eyebrow">Human + AI decision making</p>
-                <h1 id="hero-title">Learning when to answer.<br>Learning when to defer.</h1>
-                <p class="hero-description">
-                    Explore how a news classifier and an imperfect expert collaborate across five stages—from the baseline model to active learning and real human input.
+                <h2>Enter User Study</h2>
+
+                <p>
+                    Take part in the participant facing news classification study.
                 </p>
-                <div class="hero-actions">
-                    <a class="button button-dark" href="{% url 'learning_to_defer:baseline' %}">Start with Task 1</a>
-                    <a class="text-link" href="#project-stages">Explore all stages <span aria-hidden="true">→</span></a>
-                </div>
+
+                <small>
+                    10 article classifications
+                </small>
             </div>
 
-            <div class="hero-visual" aria-label="Human and AI collaboration summary">
-                <div class="decision-node ai-node">
-                    <span>AI</span>
-                    <strong>92.24%</strong>
-                    <small>baseline accuracy</small>
-                </div>
-                <div class="decision-connector" aria-hidden="true">
-                    <span></span><strong>Defer?</strong><span></span>
-                </div>
-                <div class="decision-node team-node">
-                    <span>TEAM</span>
-                    <strong>94.84%</strong>
-                    <small>combined accuracy</small>
-                </div>
-            </div>
-        </section>
+            <span class="card-arrow" aria-hidden="true">→</span>
+        </a>
 
-        <section class="snapshot-section" aria-labelledby="snapshot-heading">
-            <div class="section-heading compact-heading">
+
+        <a
+            class="primary-card report-card"
+            href="{% static 'learning_to_defer/report.pdf' %}"
+            download
+        >
+            <div>
+                <p class="card-kicker">PROJECT REPORT</p>
+
+                <h2>Download PDF</h2>
+
+                <p>
+                    Read the experimental design, motivation, methodology and results.
+                </p>
+
+                <small>
+                    Project documentation
+                </small>
+            </div>
+
+            <span class="card-arrow" aria-hidden="true">↓</span>
+        </a>
+
+    </section>
+
+
+    <!-- ADDITIONAL RESOURCES -->
+    <section class="resources-section">
+
+        <details class="resources-drawer">
+
+            <summary>
                 <div>
-                    <p class="eyebrow">Experiment snapshot</p>
-                    <h2 id="snapshot-heading">The system at a glance</h2>
+                    <span class="resources-eyebrow">Technical walkthrough</span>
+                    <strong>Explore the technical project development</strong>
                 </div>
-                <p>Results shown are from the saved project evaluation artifacts.</p>
+
+                <span class="summary-arrow" aria-hidden="true">+</span>
+            </summary>
+
+
+            <div class="resource-links">
+
+                <a href="{% url 'learning_to_defer:baseline' %}">
+                    <span class="resource-number">01</span>
+                    <div>
+                        <strong>Baseline AI</strong>
+                        <small>Task 1</small>
+                    </div>
+                    <span>→</span>
+                </a>
+
+                <a href="{% url 'learning_to_defer:simulated_expert' %}">
+                    <span class="resource-number">02</span>
+                    <div>
+                        <strong>Simulated Expert</strong>
+                        <small>Task 2</small>
+                    </div>
+                    <span>→</span>
+                </a>
+
+                <a href="{% url 'learning_to_defer:learning_to_defer' %}">
+                    <span class="resource-number">03</span>
+                    <div>
+                        <strong>Learning to Defer</strong>
+                        <small>Task 3</small>
+                    </div>
+                    <span>→</span>
+                </a>
+
+                <a href="{% url 'learning_to_defer:active_learning' %}">
+                    <span class="resource-number">04</span>
+                    <div>
+                        <strong>Active Learning</strong>
+                        <small>Task 4</small>
+                    </div>
+                    <span>→</span>
+                </a>
+
+                <a href="{% url 'learning_to_defer:classify' %}">
+                    <span class="resource-number">05</span>
+                    <div>
+                        <strong>Live Classifier</strong>
+                        <small>Live demonstration</small>
+                    </div>
+                    <span>→</span>
+                </a>
+
             </div>
 
-            <div class="snapshot-grid">
-                <article class="snapshot-card">
-                    <span>AI only</span><strong>92.24%</strong><small>Test accuracy</small>
-                </article>
-                <article class="snapshot-card">
-                    <span>Human–AI team</span><strong>94.84%</strong><small>Test accuracy</small>
-                </article>
-                <article class="snapshot-card">
-                    <span>Deferral rate</span><strong>37.54%</strong><small>2,853 of 7,600 articles</small>
-                </article>
-                <article class="snapshot-card">
-                    <span>Active budget</span><strong>2,000</strong><small>Expert queries</small>
-                </article>
-            </div>
-        </section>
+        </details>
 
-        <section class="stages-section" id="project-stages" aria-labelledby="stages-heading">
-            <div class="section-heading">
-                <div>
-                    <p class="eyebrow">Project workflow</p>
-                    <h2 id="stages-heading">Explore the five tasks</h2>
-                </div>
-                <p>Each card opens the corresponding experiment, results, or interactive activity.</p>
-            </div>
+    </section>
 
-            <div class="task-grid">
-                <a class="task-card task-one" href="{% url 'learning_to_defer:baseline' %}">
-                    <div class="task-card-top"><span class="task-number">01</span><span class="task-type">Model</span></div>
-                    <h3>Baseline AI</h3>
-                    <p>Train and evaluate the four-class AG News classifier.</p>
-                    <div class="task-result"><span>Accuracy</span><strong>92.24%</strong></div>
-                    <span class="card-link">Open Task 1 <span aria-hidden="true">→</span></span>
-                </a>
 
-                <a class="task-card task-two" href="{% url 'learning_to_defer:simulated_expert' %}">
-                    <div class="task-card-top"><span class="task-number">02</span><span class="task-type">Expert</span></div>
-                    <h3>Simulated expert</h3>
-                    <p>Inspect an imperfect expert with class-specific strengths.</p>
-                    <div class="task-result"><span>Accuracy</span><strong>84.26%</strong></div>
-                    <span class="card-link">Open Task 2 <span aria-hidden="true">→</span></span>
-                </a>
+    <footer class="landing-footer">
+        <span>Human-Centric Artificial Intelligence</span>
+        <span>Project 3 · Group 29</span>
+    </footer>
 
-                <a class="task-card task-three" href="{% url 'learning_to_defer:learning_to_defer' %}">
-                    <div class="task-card-top"><span class="task-number">03</span><span class="task-type">Decision</span></div>
-                    <h3>Learn to defer</h3>
-                    <p>Decide when the AI should answer and when the expert should.</p>
-                    <div class="task-result"><span>Team accuracy</span><strong>94.84%</strong></div>
-                    <span class="card-link">Open Task 3 <span aria-hidden="true">→</span></span>
-                </a>
+</main>
 
-                <a class="task-card task-four" href="{% url 'learning_to_defer:active_learning' %}">
-                    <div class="task-card-top"><span class="task-number">04</span><span class="task-type">Learning</span></div>
-                    <h3>Active learning</h3>
-                    <p>Discover expert competence with a limited query budget.</p>
-                    <div class="task-result"><span>Largest budget</span><strong>2,000</strong></div>
-                    <span class="card-link">Open Task 4 <span aria-hidden="true">→</span></span>
-                </a>
-
-                <a class="task-card task-five" href="{% url 'learning_to_defer:human_expert' %}">
-                    <div class="task-card-top"><span class="task-number">05</span><span class="task-type">Interactive</span></div>
-                    <h3>Human expert</h3>
-                    <p>Take the expert's seat and label actively selected articles.</p>
-                    <div class="task-result"><span>Session</span><strong>20 articles</strong></div>
-                    <span class="card-link">Open Task 5 <span aria-hidden="true">→</span></span>
-                </a>
-            </div>
-        </section>
-
-        <section class="dashboard-footer-panels">
-            <article class="action-panel classifier-panel">
-                <div>
-                    <p class="eyebrow">Try the system</p>
-                    <h2>Paste a news article</h2>
-                    <p>See the predicted topic, AI confidence, estimated expert competence, and final defer-or-answer decision.</p>
-                </div>
-                <a class="button button-dark" href="{% url 'learning_to_defer:classify' %}">Launch classifier</a>
-            </article>
-
-            <article class="action-panel report-panel">
-                <div>
-                    <p class="eyebrow">Project documentation</p>
-                    <h2>Read the full report</h2>
-                    <p>Review the experimental design, results, active-learning comparison, limitations, and references.</p>
-                </div>
-                <a class="button button-light" href="{% static 'learning_to_defer/report.pdf' %}" download>Download PDF</a>
-            </article>
-        </section>
-    </main>
-</div>
 {% endblock %}

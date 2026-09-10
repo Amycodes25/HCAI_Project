@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'learning_to_defer/style.css' %}"
+>
+<link
+    rel="stylesheet"
+    href="{% static 'learning_to_defer/project_theme.css' %}"
+>
+{% endblock %}
+
+
+{% block content %}
+
+<main class="project-shell">
+
+    <header class="page-header">
+
+        <p class="eyebrow">
+            User Study
+        </p>
+
+        <h1>
+            News Classification Study
+        </h1>
+
+        <p>
+            Thank you for taking part. In this study, you will read
+            short news articles and decide which topic best describes
+            each article.
+        </p>
+
+    </header>
+
+
+    <section class="labelling-card">
+
+        <h2>
+            What will you do?
+        </h2>
+
+        <p>
+            You will classify <strong>10 news articles</strong>.
+            For every article, choose the category that you believe
+            best represents its main topic.
+        </p>
+
+        <p>
+            The study should take approximately
+            <strong>5–7 minutes</strong>.
+        </p>
+
+
+        <h2>
+            Available categories
+        </h2>
+
+        <ul>
+
+            <li>
+                <strong>World</strong><br>
+                International affairs, politics, conflicts and
+                major global events.
+            </li>
+
+            <li>
+                <strong>Sports</strong><br>
+                Teams, athletes, matches, tournaments and
+                sporting events.
+            </li>
+
+            <li>
+                <strong>Business</strong><br>
+                Companies, markets, finance, trade and
+                economic activity.
+            </li>
+
+            <li>
+                <strong>Sci/Tech</strong><br>
+                Science, technology, software, research and
+                innovation.
+            </li>
+
+        </ul>
+
+
+        <h2>
+            While completing the study
+        </h2>
+
+        <p>
+            Please classify each article according to your own
+            judgement. There is no need to search online or use
+            external tools.
+        </p>
+
+        <p>
+            You will not be shown whether an answer is correct or
+            incorrect while the study is running. This helps ensure
+            that earlier questions do not influence your decisions
+            on later articles.
+        </p>
+
+
+        <h2>
+            About your responses
+        </h2>
+
+        <p>
+            Your selections will be recorded for the purpose of
+            evaluating the human–AI decision-making system.
+            The study interface does not require you to provide
+            your name or other directly identifying information.
+        </p>
+
+
+        <div class="study-notice">
+
+            <strong>Before you begin</strong>
+
+            <p>
+                Please complete the 10 articles in one sitting and
+                choose the category that seems most appropriate,
+                even when an article feels ambiguous.
+            </p>
+
+        </div>
+
+
+        <a
+            class="primary-button"
+            href="{% url 'learning_to_defer:start_user_study' %}"
+        >
+            Start User Study
+        </a>
+
+    </section>
+
+</main>
+
+{% endblock %}
