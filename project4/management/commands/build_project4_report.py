@@ -43,9 +43,9 @@ def register_fonts():
 
     Helvetica has no glyph for the product, sum, alpha or true minus signs, and
     ReportLab draws nothing at all where a glyph is missing rather than warning.
-    The Plackett-Luce product and the MAP objective were therefore rendering as
-    lines with holes in them -- which is unfortunate in a report whose Task 2
-    deliverable is a formulation.
+    The Plackett-Luce product and the MAP objective were therefore rendering
+    as lines with holes in them, which is unfortunate in a report where Task 2
+    asks for a formulation.
 
     DejaVu ships inside matplotlib, which is already a runtime requirement, so
     this costs no new dependency and no font file committed to the repository.
