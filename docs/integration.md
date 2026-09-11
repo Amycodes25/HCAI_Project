@@ -272,11 +272,11 @@ Ordered by what it costs against what it gains.
 
 ### Optional, if there is time
 
-- **PDP against ALE on correlated features.** Lecture 3 has a slide on PDPs with
-  correlated features. Bill depth and flipper length are strongly correlated
+- **PDP against ALE on correlated features.** The course covers what PDPs do
+  when features are correlated. Bill depth and flipper length are strongly correlated
   through species, so the two curves may visibly disagree — and you already plot
   them side by side. If they agree, that is also a result. Not yet checked.
-- **Permutation feature importance in Project 1.** Lecture 2 covers it, the
+- **Permutation feature importance in Project 1.** The course covers it, the
   original design notes list it, and it fits Project 1's own remit of comparing
   models. LIME would not — Project 2 is the explainability project, and putting
   explanation methods in Project 1 blurs a line the briefs draw clearly.
@@ -287,7 +287,7 @@ Ordered by what it costs against what it gains.
 
 - **Explanation stability against model complexity.** The idea was to sweep λ and
   show that counterfactuals become less reproducible as the model grows, matching
-  the Lecture 3 theorem that post-hoc methods are uninformative when *f* is not
+  the result that post-hoc methods are uninformative when *f* is not
   simple. Tested: 2 leaves gave 1 distinct answer in 10 runs, 3 leaves gave 2,
   5 gave 2, 10 gave 1. No trend. Palmer Penguins is nearly separable and the
   trees stay small, so there is not enough complexity for the effect to appear.

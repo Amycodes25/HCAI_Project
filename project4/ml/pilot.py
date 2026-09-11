@@ -1,6 +1,6 @@
 """A pilot on simulated participants, and the power analysis it supports.
 
-Lecture 7 frames evaluation in Human-Centric AI as two steps: simulated users
+Evaluation in human-centric AI is usually done in two steps: simulated users
 first, because they give full control over behaviour and real users are costly,
 then human users. The study is step two. This is step one.
 

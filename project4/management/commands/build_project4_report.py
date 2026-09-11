@@ -421,7 +421,7 @@ class Command(BaseCommand):
             story += [
                 Paragraph("4 &nbsp; Pilot on simulated participants", s["h1"]),
                 Paragraph(
-                    "Lecture 7 frames evaluation in this field as two steps: simulated users "
+                    "Evaluation in this field is usually done in two steps: simulated users "
                     "first, because they give full control over behaviour and real users are "
                     "costly, then human users. The study above is step two. This is step one, "
                     "and it settles two things argument cannot: whether the estimator recovers a "
