@@ -11,10 +11,10 @@ Upstream skeleton: <https://github.com/ppaamm/HCAI-PBL>
 
 | Name | Matriculation |
 |------|---------------|
-| Darren | _to add_ |
-| Chandana | _to add_ |
-| Divya | _to add_ |
-| Amritha | _to add_ |
+| Darren Noronha | 637482 |
+| Chandana Putta | 637789 |
+| Divya Chidananda | 672434 |
+| Amritha Subramanian | 641269 |
 
 The names shown on the home page come from `home/views.py`, not from this table.
 Update both together.

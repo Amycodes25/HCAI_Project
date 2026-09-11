@@ -1,13 +1,13 @@
 from django.shortcuts import render
 
 
-# Matriculation numbers are still to be collected; leave the value empty and the
-# home template omits the separator rather than printing a placeholder.
+# The group, as the brief asks for it: names and matriculation numbers, set
+# here in the view rather than written into the template.
 STUDENTS = [
-    {"name": "Darren", "matriculation": ""},
-    {"name": "Chandana", "matriculation": ""},
-    {"name": "Divya", "matriculation": ""},
-    {"name": "Amritha", "matriculation": ""},
+    {"name": "Darren Noronha", "matriculation": "637482"},
+    {"name": "Chandana Putta", "matriculation": "637789"},
+    {"name": "Divya Chidananda", "matriculation": "672434"},
+    {"name": "Amritha Subramanian", "matriculation": "641269"},
 ]
 
 PROJECTS = [
