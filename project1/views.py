@@ -897,9 +897,14 @@ def index(request):
             suggested_feature_columns, suggested_ignored_columns = (
                 get_model_feature_columns(df, target)
             )
+            # Checked against every column in the file, not just the ones the
+            # system suggested. Identifier-like and near-unique columns are
+            # pre-excluded as a default, but that is a suggestion: a user who
+            # explicitly ticks such a column has overridden it, and the
+            # interface should not silently reinstate its own guess.
             requested_features = [
                 column for column in request.POST.getlist("features")
-                if column in available_columns and column != target
+                if column in df.columns and column != target
             ]
 
             if requested_features:

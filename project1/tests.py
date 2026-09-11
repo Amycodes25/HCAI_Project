@@ -403,6 +403,12 @@ class CrossValidation(Project1Base):
     that the held-out test score is measured separately, not used to pick
     the winner (see evaluate_model_hyperparameters in views.py)."""
 
+    def train(self, model_name="tree", target="Species", test_size="0.3"):
+        return self.client.post(self.url, {
+            "action": "train", "target": target,
+            "model_name": model_name, "test_size": test_size,
+        })
+
     def test_a_normal_sized_sweep_uses_cross_validation(self):
         self.upload()  # the 18-row IRIS fixture, three balanced classes
         response = self.client.post(self.url, {
