@@ -11,7 +11,7 @@ from django.urls import reverse
 
 from . import views
 from .ml import features, pilot, preference
-from .models import StudySession
+from .models import StudySession, Trial
 
 
 class FeatureRepresentation(TestCase):
@@ -285,8 +285,21 @@ class ParticipantFlow(TestCase):
             self._answer_trial(response)
             answered += 1
 
-        # 8 trials per interface, plus the 6 held-out validation trials.
-        self.assertEqual(answered, 2 * views.TRIALS_PER_CONDITION + views.VALIDATION_TRIALS)
+        # Screens answered: the practice run before each elicitation block, the
+        # 8 recorded trials per interface, and the 6 held-out validation trials.
+        self.assertEqual(
+            answered,
+            2 * (views.PRACTICE_TRIALS + views.TRIALS_PER_CONDITION)
+            + views.VALIDATION_TRIALS,
+        )
+
+        # Practice is shown and discarded, so only the real trials are stored.
+        # This is the assertion that matters: the interface has to come back
+        # with the study's data, not just walk the participant through it.
+        self.assertEqual(
+            Trial.objects.count(),
+            2 * views.TRIALS_PER_CONDITION + views.VALIDATION_TRIALS,
+        )
 
         self.client.post(reverse("project4:study_questionnaire"),
                          {"effort_1": "3", "effort_2": "5", "preferred": "1"})
@@ -296,6 +309,16 @@ class ParticipantFlow(TestCase):
         session = StudySession.objects.get()
         self.assertTrue(session.completed)
         self.assertEqual(len(session.estimated_w), features.n_features())
+
+    def test_questionnaire_page_renders(self):
+        """It only ever got POSTed in the tests, so a KeyError on the validation
+        block sat in the GET branch unnoticed and 500ed for every participant
+        who actually reached the page."""
+        self.start()
+        response = self.client.get(reverse("project4:study_questionnaire"))
+        self.assertEqual(response.status_code, 200)
+        # The two interfaces being compared, not the held-out block.
+        self.assertEqual(len(response.context["designs"]), 2)
 
     def test_refreshing_the_trial_page_after_finishing_moves_on(self):
         self.start()

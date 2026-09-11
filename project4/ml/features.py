@@ -76,6 +76,7 @@ the regularisation in the estimator would penalise them wildly unevenly.
 """
 
 import functools
+import hashlib
 from pathlib import Path
 
 import numpy as np
@@ -190,8 +191,17 @@ def sample_movies(n, seed=None):
 
     The brief permits uniform selection and notes that a more informative or
     adaptive strategy would be an extension; uniform is what is implemented.
+
+    The seed is hashed with blake2b rather than with the built-in hash().
+    Python salts string hashing per process, so hash("(0, 1)") differs between
+    runs: the films a participant saw would change every time the server was
+    restarted, which is not acceptable in an instrument whose results have to
+    be reproducible from the stored data. Callers pass the participant token as
+    part of the seed, so each person gets their own films and any session can
+    be reconstructed exactly from its token.
     """
-    rng = np.random.default_rng(abs(hash(str(seed))) % (2 ** 32))
+    digest = hashlib.blake2b(str(seed).encode("utf-8"), digest_size=8).digest()
+    rng = np.random.default_rng(int.from_bytes(digest, "big"))
     chosen = rng.choice(movie_count(), size=n, replace=False)
     return [describe(int(i)) for i in chosen]
 

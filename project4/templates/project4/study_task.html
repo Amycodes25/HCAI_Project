@@ -2,11 +2,20 @@
 {% load static %}
 {% load assets %}
 {% block study_progress %}
-    <span class="study-step">Block {{ stage }} of {{ stages }} &middot; {{ trial }} of {{ trials }}</span>
+    {% if is_practice %}
+        <span class="study-step">Practice &middot; {{ trial }} of {{ trials }}</span>
+    {% else %}
+        <span class="study-step">Block {{ stage }} of {{ stages }} &middot; {{ trial }} of {{ trials }}</span>
+    {% endif %}
 {% endblock %}
 
 {% block study %}
 <div class="study-progress-track"><div class="study-progress-value" style="width: {{ progress }}%"></div></div>
+
+{% if is_practice %}
+    <p class="study-note">This is a practice round, so your answer is not recorded.
+    It is here so that the first question that counts is not also the first one you see.</p>
+{% endif %}
 
 <form method="post" id="trial-form">
     {% csrf_token %}
@@ -20,7 +29,11 @@
     <input type="hidden" name="elapsed_ms" id="elapsed_ms">
 
     {% if design != 'ranking' %}
-        <h1 class="study-question">Which would you rather watch?</h1>
+        {% if is_attention_check %}
+            <h1 class="study-question">For this one question only, please choose the film that was released earlier.</h1>
+        {% else %}
+            <h1 class="study-question">Which would you rather watch?</h1>
+        {% endif %}
         <div class="choice-pair">
             {% for movie in movies %}
                 <button class="movie-choice" type="submit" name="chosen" value="{{ movie.index }}"

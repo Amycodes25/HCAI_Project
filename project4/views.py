@@ -11,18 +11,17 @@ navigation at all: someone taking part should see the task, not the coursework
 around it. That separation is itself part of the study design -- navigation
 back into the explanation would be a confound.
 
-Status
-------
-This module currently delivers the structure and the participant flow. The
-machine learning behind it is deliberately not here yet:
+What a participant's data does
+------------------------------
+Every trial is written to the database as it is answered, not held until the
+end: a participant who abandons halfway still leaves the trials they completed,
+and an interface that only saved on completion would lose them. The session
+cookie carries the flow state (which block, which trial) and nothing else that
+matters.
 
-* Task 1, the feature representation, is stubbed in ml/features.py.
-* Task 2, the Plackett-Luce likelihood and the estimator for w, is stubbed in
-  ml/preference.py.
-
-Until those land, movies are drawn from a small sample file and no preference
-vector is estimated. Every page that depends on this says so on screen rather
-than showing a placeholder number that might be mistaken for a result.
+Stored per participant: a random token, the condition order, one row per trial
+with its ordering and response time, the closing questionnaire, and the fitted
+preference vector. No name, no email, no IP address.
 """
 
 import uuid
@@ -31,7 +30,7 @@ import numpy as np
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
-from .models import StudySession
+from .models import StudySession, Trial
 from .ml import features, pilot, preference
 
 # The two interfaces being compared, per the brief.
@@ -53,6 +52,19 @@ RANKING_SET_SIZE = 10
 # interface cannot produce.
 VALIDATION_TRIALS = 6
 VALIDATION = "validation"
+
+# Two unrecorded trials at the start of each elicitation block. The study
+# design calls for them so that a participant's first real answer is not also
+# their first encounter with the interface, which would load a learning effect
+# onto whichever design came first. They are shown, answered and discarded.
+PRACTICE_TRIALS = 2
+
+# One instructed-response item inside the validation block. Preference has no
+# right answer, so the check cannot ask whether a participant chose correctly;
+# instead it asks them to pick the older of two films, which anyone still
+# reading the screen can do. The analysis plan excludes participants who fail
+# it, and that exclusion is pre-registered rather than decided afterwards.
+ATTENTION_CHECK_AT = 3
 
 
 # --------------------------------------------------------------------------
@@ -135,6 +147,7 @@ def study_consent(request):
             "order": list(session.condition_order) + [VALIDATION],
             "stage": 0,
             "trial": 0,
+            "practice": 0,
             "responses": [],
         }
         _save(request, state)
@@ -214,6 +227,52 @@ def _read_ordering(request, design):
     return [index for _, index in sorted(positions, key=lambda pair: pair[0])]
 
 
+def _in_practice(state, design):
+    """Whether this request is still inside the practice run for this block.
+
+    The validation block gets no practice: by then the participant has already
+    answered eight pairwise trials, so there is nothing left to learn.
+    """
+    if design == VALIDATION:
+        return False
+    return state.get("practice", 0) < PRACTICE_TRIALS
+
+
+def _read_elapsed(request):
+    """The browser-reported thinking time, or None if the page could not send one."""
+    try:
+        value = int(float(request.POST.get("elapsed_ms", "")))
+    except (TypeError, ValueError):
+        return None
+    # A negative or absurd value means a clock change or a tampered form, not a
+    # slow participant. Storing None is more honest than storing nonsense.
+    return value if 0 <= value <= 1000 * 60 * 60 else None
+
+
+def _record_trial(state, design, ordering, elapsed):
+    """Persist one answered trial, if its session still exists.
+
+    update_or_create rather than create: a participant who refreshes the POST
+    should not produce two rows for the same trial.
+    """
+    session = StudySession.objects.filter(
+        participant=state.get("participant")
+    ).first()
+    if session is None:
+        return
+
+    Trial.objects.update_or_create(
+        session=session,
+        block=state["stage"],
+        index=state["trial"],
+        defaults={
+            "design": design,
+            "ordering": ordering,
+            "milliseconds": elapsed,
+        },
+    )
+
+
 def study_task(request):
     state = _session(request)
     if not state:
@@ -229,19 +288,35 @@ def study_task(request):
 
     if request.method == "POST":
         ordering = _read_ordering(request, design)
+        # Response time is measured in the page and posted back; it is one of
+        # the study's measures, so it is recorded per trial.
+        elapsed = _read_elapsed(request)
+
+        # Practice answers are shown and thrown away. They exist so the first
+        # recorded trial is not also the participant's first attempt.
+        if _in_practice(state, design):
+            state["practice"] += 1
+            _save(request, state)
+            return redirect("project4:study_task")
+
         state["responses"].append({
             "design": design,
             "trial": state["trial"],
             "ordering": ordering,
-            # Response time is measured in the page and posted back; it is one
-            # of the study's primary measures, so it is recorded per trial.
             "milliseconds": request.POST.get("elapsed_ms", ""),
         })
+
+        # Written now rather than at the debrief. A participant who closes the
+        # tab mid-block still leaves everything they answered, and the session
+        # cookie stops being the only copy of the study's data.
+        _record_trial(state, design, ordering, elapsed)
+
         state["trial"] += 1
 
         limit = VALIDATION_TRIALS if design == VALIDATION else TRIALS_PER_CONDITION
         if state["trial"] >= limit:
             state["trial"] = 0
+            state["practice"] = 0
             state["stage"] += 1
             _save(request, state)
             if state["stage"] >= len(state["order"]):
@@ -252,16 +327,28 @@ def study_task(request):
         return redirect("project4:study_task")
 
     size = RANKING_SET_SIZE if design == RANKING else 2
-    movies = features.sample_movies(size, seed=(state["stage"], state["trial"]))
+    practising = _in_practice(state, design)
+
+    # Keyed to the participant as well as the position, so each person sees
+    # their own films, as the design says, while staying exactly reproducible
+    # from the stored token. Practice draws from a separate part of the seed
+    # space so a practice film is not immediately repeated as a real one.
+    position = ("practice", state["practice"]) if practising else state["trial"]
+    movies = features.sample_movies(
+        size, seed=(state["participant"], state["stage"], position)
+    )
     limit = VALIDATION_TRIALS if design == VALIDATION else TRIALS_PER_CONDITION
+    attention = (design == VALIDATION and state["trial"] == ATTENTION_CHECK_AT)
 
     return render(request, "project4/study_task.html", {
         "design": design,
         "is_validation": design == VALIDATION,
+        "is_practice": practising,
+        "is_attention_check": attention,
         "movies": movies,
-        "trial": state["trial"] + 1,
-        "trials": limit,
-        "progress": round(100 * state["trial"] / limit),
+        "trial": (state["practice"] + 1) if practising else state["trial"] + 1,
+        "trials": PRACTICE_TRIALS if practising else limit,
+        "progress": 0 if practising else round(100 * state["trial"] / limit),
         "stage": state["stage"] + 1,
         "stages": len(state["order"]),
     })
@@ -273,14 +360,25 @@ def study_questionnaire(request):
         return redirect("project4:study_consent")
 
     if request.method == "POST":
-        state["questionnaire"] = {
+        answers = {
             key: value for key, value in request.POST.items() if key != "csrfmiddlewaretoken"
         }
+        state["questionnaire"] = answers
+        StudySession.objects.filter(participant=state.get("participant")).update(
+            questionnaire=answers
+        )
         _save(request, state)
         return redirect("project4:study_debrief")
 
+    # state["order"] ends with the validation block, which is not one of the
+    # two interfaces being compared and has no label. Asking DESIGN_LABELS for
+    # it raised KeyError and turned this page into a 500 for every participant
+    # who reached it: the questionnaire asks people to compare the interfaces
+    # they used, so only those two belong here.
     return render(request, "project4/study_questionnaire.html", {
-        "designs": [DESIGN_LABELS[name] for name in state["order"]],
+        "designs": [
+            DESIGN_LABELS[name] for name in state["order"] if name in DESIGN_LABELS
+        ],
     })
 
 

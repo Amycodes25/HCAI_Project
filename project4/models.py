@@ -25,8 +25,53 @@ class StudySession(models.Model):
     completed = models.BooleanField(default=False)
     estimated_w = models.JSONField(null=True, blank=True)
 
+    # The closing questionnaire: perceived effort per interface, and which one
+    # the participant felt described their taste better. Both are named as
+    # subjective measures in the study design, so both have to survive the
+    # session that collected them.
+    questionnaire = models.JSONField(null=True, blank=True)
+
     class Meta:
         ordering = ["created_at"]
 
     def __str__(self):
         return f"{self.participant} ({', '.join(self.condition_order)})"
+
+
+class Trial(models.Model):
+    """One answered trial.
+
+    The study design names time per trial as a measure and the held-out block
+    as the primary one, and neither is computable from a preference vector
+    alone -- they need the individual responses. Rows are written as each trial
+    is answered rather than at the end, so an abandoned session still yields
+    the trials that were completed.
+    """
+
+    session = models.ForeignKey(
+        StudySession, on_delete=models.CASCADE, related_name="trials"
+    )
+    design = models.CharField(max_length=16)
+    block = models.PositiveSmallIntegerField()
+    index = models.PositiveSmallIntegerField()
+
+    # Dataset indices of the films shown, best first. A pairwise choice is a
+    # ranking of length two, so one field covers both interfaces.
+    ordering = models.JSONField()
+
+    # Measured in the browser, so it is the participant's thinking time rather
+    # than a round trip. Null when the page could not report it.
+    milliseconds = models.PositiveIntegerField(null=True, blank=True)
+    answered_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["session_id", "block", "index"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["session", "block", "index"],
+                name="one_row_per_trial",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.session.participant} {self.design} #{self.index}"

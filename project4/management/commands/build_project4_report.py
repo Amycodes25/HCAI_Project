@@ -12,12 +12,16 @@ the implementation at build time, not retyped.
 
 from pathlib import Path
 
+import matplotlib
 from django.core.management.base import BaseCommand
 from reportlab.lib.enums import TA_JUSTIFY
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import cm
-from reportlab.platypus import (ListFlowable, ListItem, PageBreak, Paragraph,
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.lib.fonts import addMapping
+from reportlab.platypus import (ListFlowable, ListItem, Paragraph,
                                 SimpleDocTemplate, Spacer, Table, TableStyle)
 from reportlab.lib import colors
 
@@ -31,28 +35,72 @@ LINE = colors.HexColor("#cfd9e6")
 ACCENT = colors.HexColor("#135e78")
 
 
+BODY_FONT = "DejaVuSans"
+
+
+def register_fonts():
+    """Use DejaVu Sans, because the report contains mathematics.
+
+    Helvetica has no glyph for the product, sum, alpha or true minus signs, and
+    ReportLab draws nothing at all where a glyph is missing rather than warning.
+    The Plackett-Luce product and the MAP objective were therefore rendering as
+    lines with holes in them -- which is unfortunate in a report whose Task 2
+    deliverable is a formulation.
+
+    DejaVu ships inside matplotlib, which is already a runtime requirement, so
+    this costs no new dependency and no font file committed to the repository.
+    """
+    ttf = Path(matplotlib.get_data_path()) / "fonts" / "ttf"
+    faces = {
+        BODY_FONT: "DejaVuSans.ttf",
+        f"{BODY_FONT}-Bold": "DejaVuSans-Bold.ttf",
+        f"{BODY_FONT}-Oblique": "DejaVuSans-Oblique.ttf",
+        f"{BODY_FONT}-BoldOblique": "DejaVuSans-BoldOblique.ttf",
+    }
+    for name, filename in faces.items():
+        pdfmetrics.registerFont(TTFont(name, str(ttf / filename)))
+
+    # Without the mapping, <b> and <i> inside a Paragraph silently fall back to
+    # the regular face instead of the bold or italic one.
+    addMapping(BODY_FONT, 0, 0, BODY_FONT)
+    addMapping(BODY_FONT, 1, 0, f"{BODY_FONT}-Bold")
+    addMapping(BODY_FONT, 0, 1, f"{BODY_FONT}-Oblique")
+    addMapping(BODY_FONT, 1, 1, f"{BODY_FONT}-BoldOblique")
+
+
 def styles():
     base = getSampleStyleSheet()
     return {
         "title": ParagraphStyle("t", parent=base["Title"], fontSize=21,
-                                leading=25, textColor=INK, spaceAfter=4),
+                                leading=25, textColor=INK, spaceAfter=4,
+                                fontName=f"{BODY_FONT}-Bold"),
         "subtitle": ParagraphStyle("st", parent=base["Normal"], fontSize=10.5,
-                                   leading=14, textColor=MUTED, spaceAfter=18),
+                                   leading=14, textColor=MUTED, spaceAfter=18,
+                                   fontName=BODY_FONT),
         "h1": ParagraphStyle("h1", parent=base["Heading1"], fontSize=14,
                              leading=18, textColor=INK, spaceBefore=16,
-                             spaceAfter=6),
+                             spaceAfter=6, fontName=f"{BODY_FONT}-Bold"),
         "h2": ParagraphStyle("h2", parent=base["Heading2"], fontSize=11,
                              leading=15, textColor=ACCENT, spaceBefore=12,
-                             spaceAfter=4),
+                             spaceAfter=4, fontName=f"{BODY_FONT}-Bold"),
         "body": ParagraphStyle("b", parent=base["BodyText"], fontSize=9.5,
                                leading=14.5, textColor=INK, alignment=TA_JUSTIFY,
-                               spaceAfter=7),
+                               spaceAfter=7, fontName=BODY_FONT),
         "formula": ParagraphStyle("f", parent=base["BodyText"], fontSize=10,
                                   leading=15, textColor=INK, alignment=1,
                                   spaceBefore=6, spaceAfter=10,
-                                  fontName="Helvetica-Oblique"),
+                                  fontName=f"{BODY_FONT}-Oblique"),
         "small": ParagraphStyle("s", parent=base["BodyText"], fontSize=8.5,
-                                leading=12, textColor=MUTED, spaceAfter=6),
+                                leading=12, textColor=MUTED, spaceAfter=6,
+                                fontName=BODY_FONT),
+        # Table cells. These have to be Paragraph styles rather than TableStyle
+        # commands, because only a Paragraph wraps inside a fixed column.
+        "cell_label": ParagraphStyle("cl", parent=base["BodyText"], fontSize=8.5,
+                                     leading=12, textColor=ACCENT, spaceAfter=0,
+                                     fontName=f"{BODY_FONT}-Bold"),
+        "cell": ParagraphStyle("cd", parent=base["BodyText"], fontSize=8.5,
+                               leading=12, textColor=INK, spaceAfter=0,
+                               fontName=BODY_FONT),
     }
 
 
@@ -63,13 +111,21 @@ def bullets(items, style):
     )
 
 
-def table(rows):
-    t = Table(rows, colWidths=[4.2 * cm, 11.3 * cm], hAlign="LEFT")
+def table(s, rows):
+    """A two-column label/prose table whose prose actually wraps.
+
+    Passing a bare string as a table cell makes ReportLab lay it out as a
+    single unbroken line: it does not wrap, it does not shrink, it simply runs
+    past the column and off the page. Every row of the design table was being
+    cut off mid-sentence. Wrapping each cell in a Paragraph gives the text a
+    flowable that knows the column width, which is the whole fix.
+    """
+    cells = [
+        [Paragraph(label, s["cell_label"]), Paragraph(text, s["cell"])]
+        for label, text in rows
+    ]
+    t = Table(cells, colWidths=[4.2 * cm, 11.3 * cm], hAlign="LEFT")
     t.setStyle(TableStyle([
-        ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
-        ("FONTSIZE", (0, 0), (-1, -1), 8.5),
-        ("TEXTCOLOR", (0, 0), (0, -1), ACCENT),
-        ("TEXTCOLOR", (1, 0), (1, -1), INK),
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ("LINEBELOW", (0, 0), (-1, -2), 0.4, LINE),
         ("TOPPADDING", (0, 0), (-1, -1), 5),
@@ -83,6 +139,7 @@ class Command(BaseCommand):
     help = "Write the Project 4 report PDF from the implementation"
 
     def handle(self, *args, **options):
+        register_fonts()
         s = styles()
         names = features.feature_names()
         genres = features.genre_summary()
@@ -121,35 +178,42 @@ class Command(BaseCommand):
                 "representation with one column per director would have thousands of components "
                 "and none of them would be estimable.", s["body"]),
             Paragraph(
-                f"The representation is therefore deliberately small: <b>{features.n_features()} "
+                f"We therefore kept the representation small, at <b>{features.n_features()} "
                 f"components</b>, each chosen because it separates films in a way a person would "
                 f"recognise as taste.", s["body"]),
 
             Paragraph("1.2 &nbsp; What is included", s["h2"]),
-            table([
+            table(s, [
                 ["Genre", f"Multi-hot over the {features.N_GENRES} most common genres: "
                           + ", ".join(genres)
                           + ". Multi-label by nature, since a film can be both a comedy and a "
                             "romance, so multi-hot rather than one-hot. The remaining genres in "
                             "the dataset appear on too few films for their weights to be "
                             "estimated in a short session."],
-                ["Era", "Scaled release year. People have era preferences, and one scaled number "
-                        "captures the monotone part at the cost of a single component; one-hot "
-                        "decades would cost ten."],
-                ["Runtime", "Scaled duration. A ninety-minute film and a three-hour film are "
-                            "different propositions on a weeknight."],
-                ["Critical standing", "Scaled IMDB score. Separates viewers who follow acclaim "
-                                      "from those who do not."],
-                ["Popularity", "Scaled log vote count. Mainstream against obscure. Logged first, "
-                               "because vote counts span five orders of magnitude and the raw "
-                               "scale would let a few blockbusters dominate the inner product."],
-                ["Production scale", "Scaled log budget. A distinct axis from popularity: "
-                                     "expensive films can flop and cheap ones can be widely seen."],
-                ["Director prominence", "Scaled log director followers. A cheap proxy for the "
-                                        "auteur axis that avoids a column per director."],
-                ["Family-friendly", "Binary, G or PG against the rest. One-hot over the dozen "
-                                    "content ratings would spend a dozen components on a "
-                                    "distinction that matters mainly at this boundary."],
+                ["Era", "This is the release year, scaled. Most people have some preference about "
+                        "era, and a single scaled number captures the steady part of that for "
+                        "the cost of one component. One-hot decades would have cost ten."],
+                ["Runtime", "This is the duration, scaled. A ninety-minute film and a three-hour "
+                            "film are quite different propositions on a weeknight, and people "
+                            "do take that into account."],
+                ["Critical standing", "This is the IMDB score, scaled. It separates viewers who "
+                                      "follow critical acclaim from those who pay it no "
+                                      "attention."],
+                ["Popularity", "This is the number of votes, logged and then scaled. It captures "
+                               "the difference between mainstream and obscure taste. We take the "
+                               "logarithm first because vote counts span five orders of "
+                               "magnitude, and on the raw scale a handful of blockbusters would "
+                               "dominate the inner product."],
+                ["Production scale", "This is the budget, logged and then scaled. It is a "
+                                     "different axis from popularity, because expensive films "
+                                     "can flop and cheap ones can be seen by everyone."],
+                ["Director prominence", "This is the director's follower count, logged and then "
+                                        "scaled. It stands in cheaply for a taste in particular "
+                                        "directors, without spending a column on each one."],
+                ["Family-friendly", "This is a single indicator that is set when the content "
+                                    "rating is G or PG. One-hot encoding all twelve ratings "
+                                    "would have spent twelve components on a distinction that "
+                                    "mostly matters at this one boundary."],
             ]),
 
             Paragraph("1.3 &nbsp; What is excluded", s["h2"]),
@@ -169,8 +233,6 @@ class Command(BaseCommand):
                 "without standardisation the budget column, of order 10<sup>8</sup>, and the "
                 "genre columns, which are zero or one, could not share a sensible prior and the "
                 "regularisation would penalise them wildly unevenly.", s["body"]),
-
-            PageBreak(),
 
             Paragraph("2 &nbsp; Preference model", s["h1"]),
             Paragraph("2.1 &nbsp; From a comparison to a ranking", s["h2"]),
@@ -226,7 +288,7 @@ class Command(BaseCommand):
                 f"&nbsp;&minus;&nbsp; (&alpha;/2) ||w||<sup>2</sup>, &nbsp; &alpha; = "
                 f"{preference.DEFAULT_ALPHA}", s["formula"]),
             Paragraph(
-                f"The prior is not decoration. With roughly ten interactions and "
+                f"The prior does real work here. With roughly ten interactions and "
                 f"{features.n_features()} features the unpenalised maximum is not unique: any "
                 f"direction the shown films do not distinguish is unconstrained, and the "
                 f"optimiser will run off along it. The penalty holds those directions at zero, "
@@ -237,8 +299,6 @@ class Command(BaseCommand):
                 "Plackett&ndash;Luce probability equals the Bradley&ndash;Terry probability to "
                 "10<sup>&minus;12</sup>. The analytic gradient agrees with central differences to "
                 "10<sup>&minus;8</sup>.", s["small"]),
-
-            PageBreak(),
 
             Paragraph("3 &nbsp; User study", s["h1"]),
             Paragraph("3.1 &nbsp; Research question and hypothesis", s["h2"]),
@@ -262,11 +322,12 @@ class Command(BaseCommand):
                 s["body"]),
 
             Paragraph("3.2 &nbsp; Design", s["h2"]),
-            table([
+            table(s, [
                 ["Type", "Experimental. The interface is manipulated directly and assignment is "
                          "controlled, which permits a causal claim; an observational comparison "
                          "of people who happen to use each would not."],
-                ["Assignment", "Within-subjects: every participant uses both interfaces."],
+                ["Assignment", "The study is within-subjects, so every participant uses both "
+                               "interfaces rather than being assigned to one of them."],
                 ["Why within", "Taste varies enormously between people, and that variance is far "
                                "larger than the expected effect of the interface. Between-subjects "
                                "would need a great many more participants to see through it."],
@@ -274,9 +335,11 @@ class Command(BaseCommand):
                                   "makes order a confound, since whichever interface comes second "
                                   "benefits from practice and suffers from fatigue; alternating "
                                   "spreads that evenly rather than letting it load onto one design."],
-                ["Other controls", "Practice trials before each block, and a break between blocks. "
-                                   "Films are drawn uniformly at random from the dataset."],
-                ["Trials", "Eight per interface; ranking sets of ten films."],
+                ["Other controls", "There are practice trials before each block and a break "
+                                   "between the two blocks. The films themselves are drawn "
+                                   "uniformly at random from the dataset."],
+                ["Trials", "Each participant completes eight trials with each interface, and "
+                           "the ranking sets contain ten films."],
                 ["Validation", "Six further pairwise choices at the end, never used to fit w. "
                                "They are what makes the primary measure computable: a preference "
                                "vector fitted from one interface is scored on choices it has not "
@@ -302,14 +365,15 @@ class Command(BaseCommand):
 
             Paragraph("3.4 &nbsp; Participants and recruitment", s["h2"]),
             bullets([
-                "Any adult who watches films; no domain expertise is required, since the task is "
-                "about personal taste rather than knowledge.",
-                "Recruited through university mailing lists and noticeboards, with the study run "
-                "online so participants take part at a time that suits them.",
-                "Compensation offered for their time, since asking for unpaid participation is "
-                "both an ethical problem and a source of self-selection bias.",
-                "Sample size determined from a pilot before recruitment begins, rather than "
-                "asserted; the pilot also provides the variance estimate needed to do so.",
+                "We will recruit any adult who watches films. No particular expertise is needed, "
+                "because the task asks about personal taste rather than knowledge.",
+                "Participants will be recruited through university mailing lists and noticeboards. "
+                "The study runs online, so people can take part at a time that suits them.",
+                "We will offer compensation for their time. Asking people to take part "
+                "unpaid is both an ethical problem and a source of self-selection bias.",
+                "The sample size will be determined from a pilot before recruitment begins "
+                "rather than simply asserted, and that pilot also gives us the variance "
+                "estimate needed to calculate it.",
             ], s["body"]),
 
             Paragraph("3.5 &nbsp; Procedure", s["h2"]),
@@ -355,7 +419,6 @@ class Command(BaseCommand):
         cached = pilot.cached()
         if cached:
             story += [
-                PageBreak(),
                 Paragraph("4 &nbsp; Pilot on simulated participants", s["h1"]),
                 Paragraph(
                     "Lecture 7 frames evaluation in this field as two steps: simulated users "
